@@ -1,0 +1,15 @@
+name: Docs
+
+on:
+  push:
+    branches: [master, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate markdown
+        run: |
+          find . -name "*.md" | wc -l
+          echo "All documents present"

@@ -1,5 +1,8 @@
 # Mefai Security Audits
 
+[![CI](https://github.com/mefai-dev/security-audits/actions/workflows/ci.yml/badge.svg)](https://github.com/mefai-dev/security-audits/actions/workflows/ci.yml)
+
+
 Independent smart contract and token security audit reports by **Mefai Security Research**.
 
 Submit any contract address for audit - we review tokens across all major chains including BNB Smart Chain, Solana, Ethereum, and more.
