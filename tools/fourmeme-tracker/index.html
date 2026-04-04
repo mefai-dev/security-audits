@@ -7,75 +7,82 @@
 <meta name="description" content="Live on-chain tracking of the CrimeEnjoyer ERC-7702 delegation drainer targeting four.meme BSC users. Real-time nonce, balance, victim count from direct BSC RPC.">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#e0e0e0;font-family:'Courier New',monospace;min-height:100vh}
+:root{--gold:#d4a017;--gold-light:#f0c850;--gold-dark:#9a7410;--white:#ffffff;--off-white:#f5f0e6;--bg:#0c0a06;--bg-card:#161208;--bg-card2:#1a160e;--border:#2a2418;--border-gold:#3d3220;--text:#f5f0e6;--text-dim:#8a7e6a;--text-muted:#5a5040;--danger:#cc3333;--safe:#44aa44}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh}
 .container{max-width:1100px;margin:0 auto;padding:20px}
-h1{font-size:1.6em;color:#ff3333;text-align:center;margin:20px 0 5px}
-.subtitle{text-align:center;color:#888;font-size:0.85em;margin-bottom:30px}
+h1{font-size:1.6em;color:var(--gold-light);text-align:center;margin:20px 0 5px;text-shadow:0 0 20px rgba(212,160,23,0.3)}
+.subtitle{text-align:center;color:var(--text-dim);font-size:0.85em;margin-bottom:30px}
 .status-bar{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:25px;font-size:0.85em}
-.pulse{width:10px;height:10px;border-radius:50%;background:#ff3333;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px #ff3333}50%{opacity:0.4;box-shadow:0 0 2px #ff3333}}
-.pulse.safe{background:#00ff88;animation-name:pulse-safe}
-@keyframes pulse-safe{0%,100%{opacity:1;box-shadow:0 0 8px #00ff88}50%{opacity:0.4;box-shadow:0 0 2px #00ff88}}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--gold);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--gold)}50%{opacity:0.4;box-shadow:0 0 2px var(--gold)}}
+.pulse.safe{background:var(--safe);animation-name:pulse-safe}
+@keyframes pulse-safe{0%,100%{opacity:1;box-shadow:0 0 8px var(--safe)}50%{opacity:0.4;box-shadow:0 0 2px var(--safe)}}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px;margin-bottom:25px}
-.card{background:#111118;border:1px solid #222;border-radius:8px;padding:18px;position:relative;overflow:hidden}
-.card.critical{border-color:#ff3333}
-.card.warn{border-color:#ffaa00}
-.card.info{border-color:#4488ff}
-.card-label{font-size:0.75em;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.card-value{font-size:1.8em;font-weight:bold;color:#fff;word-break:break-all}
-.card-value.red{color:#ff3333}
-.card-value.orange{color:#ffaa00}
-.card-value.green{color:#00ff88}
-.card-value.blue{color:#4488ff}
-.card-sub{font-size:0.75em;color:#666;margin-top:6px}
-.section{background:#111118;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:20px}
-.section-title{font-size:1em;color:#ff3333;margin-bottom:15px;display:flex;align-items:center;gap:8px}
+.card{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:18px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
+.card.critical{border-color:var(--gold)}
+.card.critical::before{background:var(--gold-light)}
+.card.warn{border-color:var(--gold-dark)}
+.card.info{border-color:var(--border-gold)}
+.card-label{font-size:0.75em;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.card-value{font-size:1.8em;font-weight:bold;color:var(--white);word-break:break-all}
+.card-value.red{color:var(--gold-light)}
+.card-value.orange{color:var(--gold)}
+.card-value.green{color:var(--safe)}
+.card-value.blue{color:var(--white)}
+.card-sub{font-size:0.75em;color:var(--text-muted);margin-top:6px}
+.section{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:20px;margin-bottom:20px;position:relative}
+.section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
+.section-title{font-size:1em;color:var(--gold-light);margin-bottom:15px;display:flex;align-items:center;gap:8px}
 .section-title .icon{font-size:1.2em}
 table{width:100%;border-collapse:collapse;font-size:0.85em}
-th{text-align:left;color:#888;padding:8px;border-bottom:1px solid #222;font-weight:normal;text-transform:uppercase;font-size:0.75em;letter-spacing:1px}
-td{padding:8px;border-bottom:1px solid #1a1a1a;color:#ccc}
+th{text-align:left;color:var(--gold-dark);padding:8px;border-bottom:1px solid var(--border-gold);font-weight:normal;text-transform:uppercase;font-size:0.75em;letter-spacing:1px}
+td{padding:8px;border-bottom:1px solid var(--border);color:var(--off-white)}
 td.mono{font-family:'Courier New',monospace;font-size:0.82em}
-.addr{color:#4488ff;text-decoration:none}
-.addr:hover{text-decoration:underline}
-.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:0.75em;font-weight:bold}
-.tag-critical{background:#ff333322;color:#ff3333;border:1px solid #ff333344}
-.tag-active{background:#ffaa0022;color:#ffaa00;border:1px solid #ffaa0044}
-.tag-deployed{background:#4488ff22;color:#4488ff;border:1px solid #4488ff44}
+.addr{color:var(--gold-light);text-decoration:none}
+.addr:hover{text-decoration:underline;color:var(--white)}
+.tag{display:inline-block;padding:2px 8px;border-radius:0 6px 0 0;font-size:0.75em;font-weight:bold}
+.tag-critical{background:rgba(212,160,23,0.15);color:var(--gold-light);border:1px solid rgba(212,160,23,0.3)}
+.tag-active{background:rgba(212,160,23,0.1);color:var(--gold);border:1px solid rgba(212,160,23,0.25)}
+.tag-deployed{background:rgba(255,255,255,0.08);color:var(--white);border:1px solid rgba(255,255,255,0.15)}
 .timeline{position:relative;padding-left:20px}
-.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:#222}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--border-gold)}
 .timeline-item{position:relative;margin-bottom:15px;padding-left:15px}
-.timeline-item::before{content:'';position:absolute;left:-17px;top:6px;width:10px;height:10px;border-radius:50%;background:#ff3333;border:2px solid #0a0a0f}
-.timeline-item.current::before{background:#ffaa00;animation:pulse 1.5s infinite}
-.timeline-label{font-size:0.75em;color:#888}
-.timeline-value{font-size:0.95em;color:#fff;margin-top:2px}
-.func-table td:first-child{color:#ffaa00}
-.log-box{background:#0a0a0f;border:1px solid #222;border-radius:4px;padding:12px;max-height:250px;overflow-y:auto;font-size:0.8em;line-height:1.6}
-.log-entry{color:#666}
-.log-entry .time{color:#444}
-.log-entry .action{color:#ffaa00}
-.log-entry .value{color:#fff}
-.log-entry.alert{color:#ff3333}
-.log-entry.alert .value{color:#ff3333}
-.refresh-info{text-align:center;color:#444;font-size:0.75em;margin:15px 0}
-.footer{text-align:center;color:#444;font-size:0.75em;margin-top:30px;padding:20px;border-top:1px solid #1a1a1a}
-.footer a{color:#4488ff;text-decoration:none}
-.check-section{background:#111118;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:20px}
+.timeline-item::before{content:'';position:absolute;left:-17px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--gold-dark);border:2px solid var(--bg)}
+.timeline-item.current::before{background:var(--gold-light);animation:pulse 1.5s infinite}
+.timeline-label{font-size:0.75em;color:var(--text-dim)}
+.timeline-value{font-size:0.95em;color:var(--white);margin-top:2px}
+.func-table td:first-child{color:var(--gold)}
+.log-box{background:var(--bg);border:1px solid var(--border);border-radius:0 8px 0 0;padding:12px;max-height:250px;overflow-y:auto;font-size:0.8em;line-height:1.6}
+.log-entry{color:var(--text-muted)}
+.log-entry .time{color:var(--text-muted)}
+.log-entry .action{color:var(--gold)}
+.log-entry .value{color:var(--white)}
+.log-entry.alert{color:var(--gold-light)}
+.log-entry.alert .value{color:var(--gold-light)}
+.refresh-info{text-align:center;color:var(--text-muted);font-size:0.75em;margin:15px 0}
+.footer{text-align:center;color:var(--text-muted);font-size:0.75em;margin-top:30px;padding:20px;border-top:1px solid var(--border-gold)}
+.footer a{color:var(--gold-light);text-decoration:none}
+.footer a:hover{color:var(--white)}
+.check-section{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:20px;margin-bottom:20px;position:relative}
+.check-section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
 .check-input{display:flex;gap:10px;margin-top:10px}
-.check-input input{flex:1;background:#0a0a0f;border:1px solid #333;color:#fff;padding:10px 14px;border-radius:4px;font-family:'Courier New',monospace;font-size:0.85em}
-.check-input input::placeholder{color:#444}
-.check-input button{background:#ff3333;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;font-family:'Courier New',monospace;font-weight:bold;font-size:0.85em;white-space:nowrap}
-.check-input button:hover{background:#ff4444}
-.check-input button:disabled{background:#333;cursor:not-allowed}
-.check-result{margin-top:12px;padding:12px;border-radius:4px;font-size:0.85em;display:none}
-.check-result.safe{background:#00ff8815;border:1px solid #00ff8833;color:#00ff88}
-.check-result.compromised{background:#ff333315;border:1px solid #ff333333;color:#ff3333}
-.check-result.contract{background:#4488ff15;border:1px solid #4488ff33;color:#4488ff}
-.check-result.error{background:#ffaa0015;border:1px solid #ffaa0033;color:#ffaa00}
+.check-input input{flex:1;background:var(--bg);border:1px solid var(--border-gold);color:var(--white);padding:10px 14px;border-radius:0 8px 0 0;font-family:'Courier New',monospace;font-size:0.85em}
+.check-input input::placeholder{color:var(--text-muted)}
+.check-input input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 8px rgba(212,160,23,0.2)}
+.check-input button{background:var(--gold-dark);color:var(--white);border:none;padding:10px 20px;border-radius:0 8px 0 0;cursor:pointer;font-family:'Courier New',monospace;font-weight:bold;font-size:0.85em;white-space:nowrap;transition:background 0.2s}
+.check-input button:hover{background:var(--gold)}
+.check-input button:disabled{background:var(--border);cursor:not-allowed;color:var(--text-muted)}
+.check-result{margin-top:12px;padding:12px;border-radius:0 8px 0 0;font-size:0.85em;display:none}
+.check-result.safe{background:rgba(68,170,68,0.1);border:1px solid rgba(68,170,68,0.25);color:var(--safe)}
+.check-result.compromised{background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);color:var(--gold-light)}
+.check-result.contract{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:var(--white)}
+.check-result.error{background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:var(--gold)}
 .hidden{display:none}
 .nonce-chart{height:80px;display:flex;align-items:flex-end;gap:2px;margin-top:10px}
-.nonce-bar{background:#ff333366;min-width:3px;flex:1;border-radius:2px 2px 0 0;transition:height 0.3s}
-.nonce-bar:last-child{background:#ff3333}
-.delta{font-size:0.7em;color:#ff3333;margin-left:5px}
+.nonce-bar{background:rgba(212,160,23,0.3);min-width:3px;flex:1;border-radius:0 2px 0 0;transition:height 0.3s}
+.nonce-bar:last-child{background:var(--gold)}
+.delta{font-size:0.7em;color:var(--gold-light);margin-left:5px}
 .delta.up::before{content:''}
 </style>
 </head>
@@ -88,8 +95,8 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
 <div class="status-bar">
   <div class="pulse" id="statusPulse"></div>
   <span id="statusText">Connecting to BSC RPC...</span>
-  <span style="color:#444">|</span>
-  <span id="lastUpdate" style="color:#444">--</span>
+  <span style="color:var(--text-muted)">|</span>
+  <span id="lastUpdate" style="color:var(--text-muted)">--</span>
 </div>
 
 <div class="grid">
@@ -192,7 +199,7 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
     </tr>
     <tr>
       <td style="white-space:nowrap">2025-2026</td>
-      <td>CrimeEnjoyer expands to BSC via Pascal. Controller <span style="color:#ffaa00" id="timelineNonce">3840+</span> transactions executed</td>
+      <td>CrimeEnjoyer expands to BSC via Pascal. Controller <span style="color:var(--gold)" id="timelineNonce">3840+</span> transactions executed</td>
       <td>BSC RPC (eth_getTransactionCount)</td>
     </tr>
     <tr>
@@ -203,7 +210,7 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
     <tr>
       <td style="white-space:nowrap;color:#ffaa00">NOW</td>
       <td>
-        <span id="timelineStatusText" style="color:#ff3333">Drainer infrastructure still active on BSC</span>
+        <span id="timelineStatusText" style="color:var(--gold-light)">Drainer infrastructure still active on BSC</span>
       </td>
       <td>Live RPC (this page)</td>
     </tr>
@@ -216,17 +223,17 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
     <tr><th>Evidence</th><th>Value</th><th>Verification</th></tr>
     <tr>
       <td>"wee" string in bytecode</td>
-      <td style="color:#ffaa00">Found at byte offset 629</td>
+      <td style="color:var(--gold)">Found at byte offset 629</td>
       <td>CrimeEnjoyer fingerprint. Present in all known variants</td>
     </tr>
     <tr>
       <td>Controller address hardcoded</td>
-      <td style="color:#ff3333">5 times in 2727 bytes</td>
+      <td style="color:var(--gold-light)">5 times in 2727 bytes</td>
       <td>0xa7bff...e972 embedded as PUSH20 in receive/fallback/multicall</td>
     </tr>
     <tr>
       <td>Victim wallet 0xef01 prefix</td>
-      <td style="color:#ff3333">Active delegation</td>
+      <td style="color:var(--gold-light)">Active delegation</td>
       <td>eth_getCode returns 0xef01 + delegate address (not normal 0x)</td>
     </tr>
     <tr>
@@ -236,7 +243,7 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
     </tr>
     <tr>
       <td>Delegate contract</td>
-      <td style="color:#ff3333">2727 bytes deployed</td>
+      <td style="color:var(--gold-light)">2727 bytes deployed</td>
       <td>Not self-destructed. Drainer code still executable</td>
     </tr>
   </table>
@@ -350,7 +357,7 @@ function addLog(msg, isAlert) {
 function updateNonceChart() {
   const chart = document.getElementById("nonceChart");
   if (nonceHistory.length < 2) {
-    chart.innerHTML = '<div style="color:#444;font-size:0.8em;padding:20px">Collecting samples...</div>';
+    chart.innerHTML = '<div style="color:var(--text-muted);font-size:0.8em;padding:20px">Collecting samples...</div>';
     return;
   }
   const min = Math.min(...nonceHistory);
@@ -432,7 +439,7 @@ async function fetchAll() {
       document.getElementById("drainerSub").textContent = "Drainer infrastructure operational";
       document.getElementById("statusPulse").className = "pulse";
       document.getElementById("statusText").textContent = "DRAINER ACTIVE on BSC";
-      document.getElementById("statusText").style.color = "#ff3333";
+      document.getElementById("statusText").style.color = "#f0c850";
       document.getElementById("controllerTag").textContent = "ACTIVE";
       document.getElementById("controllerTag").className = "tag tag-active";
     } else {
@@ -441,7 +448,7 @@ async function fetchAll() {
       document.getElementById("drainerSub").textContent = "Delegate contract destroyed";
       document.getElementById("statusPulse").className = "pulse safe";
       document.getElementById("statusText").textContent = "Drainer inactive";
-      document.getElementById("statusText").style.color = "#00ff88";
+      document.getElementById("statusText").style.color = "#44aa44";
       document.getElementById("controllerTag").textContent = "INACTIVE";
     }
 
@@ -462,10 +469,10 @@ async function fetchAll() {
     if (tlStatus) {
       if (delegateCode !== "0x" && delegateBytes > 100) {
         tlStatus.textContent = "Drainer infrastructure ACTIVE. Nonce: " + nonce;
-        tlStatus.style.color = "#ff3333";
+        tlStatus.style.color = "#f0c850";
       } else {
         tlStatus.textContent = "Delegate contract destroyed. Drainer may be inactive.";
-        tlStatus.style.color = "#00ff88";
+        tlStatus.style.color = "#44aa44";
       }
     }
 
@@ -507,7 +514,7 @@ async function checkWallet() {
       const isCrimeEnjoyer = delegate.toLowerCase() === DELEGATE.toLowerCase();
       result.className = "check-result compromised";
       result.innerHTML = `<strong>COMPROMISED</strong> &mdash; ERC-7702 delegation active!<br>
-        Delegate: <a class="addr" href="https://bscscan.com/address/${delegate}" target="_blank" style="color:#ff6666">${delegate}</a><br>
+        Delegate: <a class="addr" href="https://bscscan.com/address/${delegate}" target="_blank" style="color:#f0c850">${delegate}</a><br>
         ${isCrimeEnjoyer ? '<strong>This is the CrimeEnjoyer drainer contract.</strong><br>' : ''}
         DO NOT send any funds to this wallet. All incoming transfers will be auto-forwarded to the attacker.`;
       addLog(`Wallet check: <span class="value">${input.slice(0,10)}...</span> = <span class="value">COMPROMISED</span> (delegate: ${delegate.slice(0,10)}...)`, true);
