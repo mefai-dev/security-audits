@@ -131,7 +131,7 @@ td.mono{font-family:'Courier New',monospace;font-size:0.82em}
 <div class="section">
   <div class="section-title"><span class="icon">&#9888;</span> Live Activity Log</div>
   <div class="log-box" id="logBox">
-    <div class="log-entry"><span class="time">[--:--:--]</span> Waiting for first RPC response...</div>
+    <div class="log-entry"><span class="time">[--:--:--]</span> Monitoring. Events will appear here when nonce changes or status updates.</div>
   </div>
 </div>
 
@@ -395,7 +395,6 @@ async function fetchAll() {
     if (firstNonce === null) {
       firstNonce = nonce;
       firstTime = now;
-      addLog(`<span class="action">CONNECTED</span> Controller nonce: <span class="value">${nonce}</span>. Balance: <span class="value">${balance} BNB</span>`, false);
     }
 
     // Nonce rate
