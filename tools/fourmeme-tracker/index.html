@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>four.meme Attack Tracker | CrimeEnjoyer ERC-7702 Drainer | MEFAI Security</title>
+<meta name="description" content="Live on-chain tracking of the CrimeEnjoyer ERC-7702 delegation drainer targeting four.meme BSC users. Real-time nonce, balance, victim count from direct BSC RPC.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#d4a017;--gold-light:#f0c850;--gold-dark:#9a7410;--white:#ffffff;--off-white:#f5f0e6;--bg:#0c0a06;--bg-card:#161208;--bg-card2:#1a160e;--border:#2a2418;--border-gold:#3d3220;--text:#f5f0e6;--text-dim:#8a7e6a;--text-muted:#5a5040;--danger:#cc3333;--safe:#44aa44}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+h1{font-size:1.6em;color:var(--gold-light);text-align:center;margin:20px 0 5px;text-shadow:0 0 20px rgba(212,160,23,0.3)}
+.subtitle{text-align:center;color:var(--text-dim);font-size:0.85em;margin-bottom:30px}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:25px;font-size:0.85em}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--gold);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--gold)}50%{opacity:0.4;box-shadow:0 0 2px var(--gold)}}
+.pulse.safe{background:var(--safe);animation-name:pulse-safe}
+@keyframes pulse-safe{0%,100%{opacity:1;box-shadow:0 0 8px var(--safe)}50%{opacity:0.4;box-shadow:0 0 2px var(--safe)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px;margin-bottom:25px}
+.card{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:18px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
+.card.critical{border-color:var(--gold)}
+.card.critical::before{background:var(--gold-light)}
+.card.warn{border-color:var(--gold-dark)}
+.card.info{border-color:var(--border-gold)}
+.card-label{font-size:0.75em;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.card-value{font-size:1.8em;font-weight:bold;color:var(--white);word-break:break-all}
+.card-value.red{color:var(--gold-light)}
+.card-value.orange{color:var(--gold)}
+.card-value.green{color:var(--safe)}
+.card-value.blue{color:var(--white)}
+.card-sub{font-size:0.75em;color:var(--text-muted);margin-top:6px}
+.section{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:20px;margin-bottom:20px;position:relative}
+.section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
+.section-title{font-size:1em;color:var(--gold-light);margin-bottom:15px;display:flex;align-items:center;gap:8px}
+.section-title .icon{font-size:1.2em}
+table{width:100%;border-collapse:collapse;font-size:0.85em}
+th{text-align:left;color:var(--gold-dark);padding:8px;border-bottom:1px solid var(--border-gold);font-weight:normal;text-transform:uppercase;font-size:0.75em;letter-spacing:1px}
+td{padding:8px;border-bottom:1px solid var(--border);color:var(--off-white)}
+td.mono{font-family:'Courier New',monospace;font-size:0.82em}
+.addr{color:var(--gold-light);text-decoration:none}
+.addr:hover{text-decoration:underline;color:var(--white)}
+.tag{display:inline-block;padding:2px 8px;border-radius:0 6px 0 0;font-size:0.75em;font-weight:bold}
+.tag-critical{background:rgba(212,160,23,0.15);color:var(--gold-light);border:1px solid rgba(212,160,23,0.3)}
+.tag-active{background:rgba(212,160,23,0.1);color:var(--gold);border:1px solid rgba(212,160,23,0.25)}
+.tag-deployed{background:rgba(255,255,255,0.08);color:var(--white);border:1px solid rgba(255,255,255,0.15)}
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--border-gold)}
+.timeline-item{position:relative;margin-bottom:15px;padding-left:15px}
+.timeline-item::before{content:'';position:absolute;left:-17px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--gold-dark);border:2px solid var(--bg)}
+.timeline-item.current::before{background:var(--gold-light);animation:pulse 1.5s infinite}
+.timeline-label{font-size:0.75em;color:var(--text-dim)}
+.timeline-value{font-size:0.95em;color:var(--white);margin-top:2px}
+.func-table td:first-child{color:var(--gold)}
+.log-box{background:var(--bg);border:1px solid var(--border);border-radius:0 8px 0 0;padding:12px;max-height:250px;overflow-y:auto;font-size:0.8em;line-height:1.6}
+.log-entry{color:var(--text-muted)}
+.log-entry .time{color:var(--text-muted)}
+.log-entry .action{color:var(--gold)}
+.log-entry .value{color:var(--white)}
+.log-entry.alert{color:var(--gold-light)}
+.log-entry.alert .value{color:var(--gold-light)}
+.refresh-info{text-align:center;color:var(--text-muted);font-size:0.75em;margin:15px 0}
+.footer{text-align:center;color:var(--text-muted);font-size:0.75em;margin-top:30px;padding:20px;border-top:1px solid var(--border-gold)}
+.footer a{color:var(--gold-light);text-decoration:none}
+.footer a:hover{color:var(--white)}
+.check-section{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:0 16px 0 0;padding:20px;margin-bottom:20px;position:relative}
+.check-section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold-dark)}
+.check-input{display:flex;gap:10px;margin-top:10px}
+.check-input input{flex:1;background:var(--bg);border:1px solid var(--border-gold);color:var(--white);padding:10px 14px;border-radius:0 8px 0 0;font-family:'Courier New',monospace;font-size:0.85em}
+.check-input input::placeholder{color:var(--text-muted)}
+.check-input input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 8px rgba(212,160,23,0.2)}
+.check-input button{background:var(--gold-dark);color:var(--white);border:none;padding:10px 20px;border-radius:0 8px 0 0;cursor:pointer;font-family:'Courier New',monospace;font-weight:bold;font-size:0.85em;white-space:nowrap;transition:background 0.2s}
+.check-input button:hover{background:var(--gold)}
+.check-input button:disabled{background:var(--border);cursor:not-allowed;color:var(--text-muted)}
+.check-result{margin-top:12px;padding:12px;border-radius:0 8px 0 0;font-size:0.85em;display:none}
+.check-result.safe{background:rgba(68,170,68,0.1);border:1px solid rgba(68,170,68,0.25);color:var(--safe)}
+.check-result.compromised{background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);color:var(--gold-light)}
+.check-result.contract{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:var(--white)}
+.check-result.error{background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:var(--gold)}
+.hidden{display:none}
+.nonce-chart{height:80px;display:flex;align-items:flex-end;gap:2px;margin-top:10px}
+.nonce-bar{background:rgba(212,160,23,0.3);min-width:3px;flex:1;border-radius:0 2px 0 0;transition:height 0.3s}
+.nonce-bar:last-child{background:var(--gold)}
+.delta{font-size:0.7em;color:var(--gold-light);margin-left:5px}
+.delta.up::before{content:''}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>four.meme Attack Tracker</h1>
+<p class="subtitle">CrimeEnjoyer ERC-7702 Delegation Drainer on BSC &mdash; Live On-Chain Data via Direct RPC</p>
+
+<div class="status-bar">
+  <div class="pulse" id="statusPulse"></div>
+  <span id="statusText">Connecting to BSC RPC...</span>
+  <span style="color:var(--text-muted)">|</span>
+  <span id="lastUpdate" style="color:var(--text-muted)">--</span>
+</div>
+
+<div class="grid">
+  <div class="card critical">
+    <div class="card-label">Controller Nonce (Total TX)</div>
+    <div class="card-value red" id="nonce">--</div>
+    <div class="card-sub" id="nonceRate">Loading...</div>
+  </div>
+  <div class="card critical">
+    <div class="card-label">Controller Balance</div>
+    <div class="card-value orange" id="balance">--</div>
+    <div class="card-sub">BNB currently held</div>
+  </div>
+  <div class="card info">
+    <div class="card-label">Delegate Contract</div>
+    <div class="card-value blue" id="delegateStatus">--</div>
+    <div class="card-sub" id="delegateBytes">Checking...</div>
+  </div>
+  <div class="card warn">
+    <div class="card-label">Drainer Status</div>
+    <div class="card-value" id="drainerStatus">--</div>
+    <div class="card-sub" id="drainerSub">Analyzing...</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#9200;</span> Nonce History (sampled every 30s)</div>
+  <div class="nonce-chart" id="nonceChart"></div>
+  <div class="refresh-info">Chart shows nonce samples over time. Rising = active draining.</div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#9888;</span> Live Activity Log</div>
+  <div class="log-box" id="logBox">
+    <div class="log-entry"><span class="time">[--:--:--]</span> Monitoring. Events will appear here when nonce changes or status updates.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128270;</span> Attack Infrastructure</div>
+  <table>
+    <tr>
+      <th>Component</th>
+      <th>Address</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>Controller (Attacker)</td>
+      <td class="mono"><a class="addr" href="https://bscscan.com/address/0xa7bff280ba6308ebc8fa3f5a1fa1b455aa57e972" target="_blank">0xa7bff...e972</a></td>
+      <td><span class="tag tag-active" id="controllerTag">CHECKING</span></td>
+    </tr>
+    <tr>
+      <td>Delegate Contract</td>
+      <td class="mono"><a class="addr" href="https://bscscan.com/address/0x91c478e3a87626be374e0c29338ad68f38556e2c" target="_blank">0x91c47...2c</a></td>
+      <td><span class="tag tag-deployed" id="delegateTag">CHECKING</span></td>
+    </tr>
+    <tr>
+      <td>Known Victim</td>
+      <td class="mono"><a class="addr" href="https://bscscan.com/address/0x8cbf7a53af6b88abb07ba481ac66d73a99985878" target="_blank">0x8cbf7...878</a></td>
+      <td><span class="tag tag-critical" id="victimTag">CHECKING</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128736;</span> Delegate Contract Functions (Reverse Engineered)</div>
+  <table class="func-table">
+    <tr><th>Function</th><th>Auth</th><th>Purpose</th></tr>
+    <tr><td>receive()</td><td>None</td><td>Auto-forwards incoming BNB to controller</td></tr>
+    <tr><td>fallback()</td><td>None</td><td>Backup sweep. Same as receive</td></tr>
+    <tr><td>multicall(Call[])</td><td>tx.origin == owner</td><td>Executes arbitrary calls from victim wallet</td></tr>
+    <tr><td>selfdestruct()</td><td>tx.origin == owner</td><td>Destroys evidence. Sends remaining funds</td></tr>
+    <tr><td>name()</td><td>None</td><td>Returns "wee" (CrimeEnjoyer fingerprint)</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128197;</span> Timeline (On-Chain Verified)</div>
+  <table>
+    <tr><th>Date</th><th>Event</th><th>Source</th></tr>
+    <tr>
+      <td style="white-space:nowrap">2025-03-20</td>
+      <td>BSC Pascal Hardfork activates EIP-7702 on BNB Smart Chain (02:10 UTC)</td>
+      <td><a class="addr" href="https://www.bnbchain.org/en/blog/bnb-chain-announces-pascal-hard-fork" target="_blank">BNB Chain Blog</a></td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap">2025-05-07</td>
+      <td>Ethereum Pectra upgrade enables EIP-7702 on mainnet</td>
+      <td><a class="addr" href="https://blog.ethereum.org/2025/04/23/pectra-mainnet" target="_blank">Ethereum Foundation</a></td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap">2025-05</td>
+      <td>CrimeEnjoyer drainer family first detected on Ethereum. Wintermute names and tracks it</td>
+      <td><a class="addr" href="https://www.coindesk.com/tech/2025/06/02/post-pectra-upgrade-malicious-ethereum-contracts-are-trying-to-drain-wallets-but-to-no-avail-wintermute" target="_blank">CoinDesk / Wintermute</a></td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap">2025-06</td>
+      <td>Wintermute reports 97% of all EIP-7702 delegations are CrimeEnjoyer sweepers</td>
+      <td><a class="addr" href="https://protos.com/48-of-ethereum-eip-7702-uses-linked-to-crime-says-wintermute/" target="_blank">Protos / Wintermute</a></td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap">2025-2026</td>
+      <td>CrimeEnjoyer expands to BSC via Pascal. Controller <span style="color:var(--gold)" id="timelineNonce">3840+</span> transactions executed</td>
+      <td>BSC RPC (eth_getTransactionCount)</td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap">2026-04-04</td>
+      <td>MEFAI Security publishes four.meme attack surface report. Delegate still deployed (2727 bytes)</td>
+      <td><a class="addr" href="https://github.com/mefai-dev/security-audits/blob/main/audits/FOUR-MEME-ERC7702-SECURITY-REPORT.md" target="_blank">MEFAI Report</a></td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap;color:#ffaa00">NOW</td>
+      <td>
+        <span id="timelineStatusText" style="color:var(--gold-light)">Drainer infrastructure still active on BSC</span>
+      </td>
+      <td>Live RPC (this page)</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128270;</span> On-Chain Evidence (Bytecode Analysis)</div>
+  <table>
+    <tr><th>Evidence</th><th>Value</th><th>Verification</th></tr>
+    <tr>
+      <td>"wee" string in bytecode</td>
+      <td style="color:var(--gold)">Found at byte offset 629</td>
+      <td>CrimeEnjoyer fingerprint. Present in all known variants</td>
+    </tr>
+    <tr>
+      <td>Controller address hardcoded</td>
+      <td style="color:var(--gold-light)">5 times in 2727 bytes</td>
+      <td>0xa7bff...e972 embedded as PUSH20 in receive/fallback/multicall</td>
+    </tr>
+    <tr>
+      <td>Victim wallet 0xef01 prefix</td>
+      <td style="color:var(--gold-light)">Active delegation</td>
+      <td>eth_getCode returns 0xef01 + delegate address (not normal 0x)</td>
+    </tr>
+    <tr>
+      <td>Victim balance</td>
+      <td>0 BNB</td>
+      <td>All funds swept. Any deposit auto-forwards to controller</td>
+    </tr>
+    <tr>
+      <td>Delegate contract</td>
+      <td style="color:var(--gold-light)">2727 bytes deployed</td>
+      <td>Not self-destructed. Drainer code still executable</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128279;</span> Attack Flow</div>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-label">Step 1</div>
+      <div class="timeline-value">User visits four.meme token page (No SRI on scripts. No CSP header)</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-label">Step 2</div>
+      <div class="timeline-value">Browser loads viem library with signAuthorization() in page context</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-label">Step 3</div>
+      <div class="timeline-value">Injected code adds authorizationList to transaction (viem auto-sets type 0x04)</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-label">Step 4</div>
+      <div class="timeline-value">MetaMask shows normal-looking transaction. User confirms</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-label">Step 5</div>
+      <div class="timeline-value">Wallet delegated to CrimeEnjoyer contract (0xef01 prefix set)</div>
+    </div>
+    <div class="timeline-item current">
+      <div class="timeline-label">Step 6 (Ongoing)</div>
+      <div class="timeline-value">All funds drained. All future deposits auto-forwarded to controller</div>
+    </div>
+  </div>
+</div>
+
+<div class="check-section">
+  <div class="section-title"><span class="icon">&#128737;</span> Check Your Wallet</div>
+  <p style="font-size:0.82em;color:#888;margin-bottom:5px">Enter any BSC wallet address to check if it has been compromised by ERC-7702 delegation</p>
+  <div class="check-input">
+    <input type="text" id="walletInput" placeholder="0x... (BSC wallet address)" spellcheck="false">
+    <button id="checkBtn" onclick="checkWallet()">CHECK</button>
+  </div>
+  <div class="check-result" id="checkResult"></div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon">&#128196;</span> four.meme Security Gaps Enabling This Attack</div>
+  <table>
+    <tr><th>Issue</th><th>Impact</th><th>Verified</th></tr>
+    <tr><td>No Subresource Integrity (SRI)</td><td>CDN modification undetectable</td><td>curl verified (0 integrity tags)</td></tr>
+    <tr><td>No Content Security Policy</td><td>Injected JS runs unrestricted</td><td>curl verified (no CSP header)</td></tr>
+    <tr><td>Wildcard CORS (*)</td><td>Any origin can make authenticated requests</td><td>curl verified (access-control-allow-origin: *)</td></tr>
+    <tr><td>signAuthorization in page context</td><td>ERC-7702 signing available to injected code</td><td>grep verified in viem bundle</td></tr>
+    <tr><td>Unverified proxy contract</td><td>Users cannot audit execution code</td><td>BscScan verified</td></tr>
+    <tr><td>Active phishing domains</td><td>4meme.com / fourmeme.xyz redirecting users</td><td>DNS + curl verified</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  <p>Data sourced directly from BSC RPC (bsc-dataseed1.binance.org). No third-party APIs. Auto-refreshes every 30 seconds.</p>
+  <p style="margin-top:8px">
+    <a href="https://mefai-dev.github.io/security-audits/tools/erc7702-checker/">ERC-7702 Wallet Checker</a> &middot;
+    <a href="https://github.com/mefai-dev/security-audits/blob/main/audits/FOUR-MEME-ERC7702-SECURITY-REPORT.md">Full Security Report</a> &middot;
+    <a href="https://github.com/mefai-dev/security-audits">MEFAI Security Research</a>
+  </p>
+  <p style="margin-top:8px;color:#333">Defensive security research. No exploitation performed. All data is publicly accessible on-chain.</p>
+</div>
+
+</div>
+
+<script>
+const RPC = "https://bsc-dataseed1.binance.org";
+const CONTROLLER = "0xa7bff280ba6308ebc8fa3f5a1fa1b455aa57e972";
+const DELEGATE = "0x91c478e3a87626be374e0c29338ad68f38556e2c";
+const VICTIM = "0x8cbf7a53af6b88abb07ba481ac66d73a99985878";
+const REFRESH_MS = 30000;
+
+let nonceHistory = [];
+let prevNonce = null;
+let firstNonce = null;
+let firstTime = null;
+let logEntries = [];
+
+async function rpcCall(method, params) {
+  const r = await fetch(RPC, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({jsonrpc:"2.0", method, params, id:1})
+  });
+  const j = await r.json();
+  return j.result;
+}
+
+function hexToInt(h) { return parseInt(h, 16); }
+function hexToBnb(h) { return (parseInt(h, 16) / 1e18).toFixed(4); }
+function timeStr() {
+  const d = new Date();
+  return d.toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+
+function addLog(msg, isAlert) {
+  const t = timeStr();
+  logEntries.unshift({time: t, msg, isAlert});
+  if (logEntries.length > 50) logEntries.pop();
+  const box = document.getElementById("logBox");
+  box.innerHTML = logEntries.map(e =>
+    `<div class="log-entry${e.isAlert ? ' alert' : ''}"><span class="time">[${e.time}]</span> ${e.msg}</div>`
+  ).join("");
+}
+
+function updateNonceChart() {
+  const chart = document.getElementById("nonceChart");
+  if (nonceHistory.length < 2) {
+    chart.innerHTML = '<div style="color:var(--text-muted);font-size:0.8em;padding:20px">Collecting samples...</div>';
+    return;
+  }
+  const min = Math.min(...nonceHistory);
+  const max = Math.max(...nonceHistory);
+  const range = Math.max(max - min, 1);
+  chart.innerHTML = nonceHistory.map((n, i) => {
+    const h = Math.max(5, ((n - min) / range) * 70 + 10);
+    return `<div class="nonce-bar" style="height:${h}px" title="Nonce: ${n}"></div>`;
+  }).join("");
+}
+
+async function fetchAll() {
+  try {
+    const [nonceHex, balHex, delegateCode, victimCode] = await Promise.all([
+      rpcCall("eth_getTransactionCount", [CONTROLLER, "latest"]),
+      rpcCall("eth_getBalance", [CONTROLLER, "latest"]),
+      rpcCall("eth_getCode", [DELEGATE, "latest"]),
+      rpcCall("eth_getCode", [VICTIM, "latest"])
+    ]);
+
+    const nonce = hexToInt(nonceHex);
+    const balance = hexToBnb(balHex);
+    const delegateBytes = (delegateCode.length - 2) / 2;
+    const victimDelegated = victimCode.startsWith("0xef01");
+    const now = new Date();
+
+    // Nonce
+    const nonceEl = document.getElementById("nonce");
+    nonceEl.textContent = nonce.toLocaleString();
+    if (prevNonce !== null && nonce > prevNonce) {
+      const diff = nonce - prevNonce;
+      addLog(`<span class="action">NONCE INCREASE</span> <span class="value">+${diff}</span> (${prevNonce} &rarr; ${nonce}). New drain activity detected.`, true);
+    }
+
+    if (firstNonce === null) {
+      firstNonce = nonce;
+      firstTime = now;
+    }
+
+    // Nonce rate
+    const elapsed = (now - firstTime) / 1000;
+    if (elapsed > 60 && nonce > firstNonce) {
+      const rate = ((nonce - firstNonce) / elapsed * 3600).toFixed(1);
+      document.getElementById("nonceRate").textContent = `+${nonce - firstNonce} since tracking started (${rate}/hr)`;
+    } else {
+      document.getElementById("nonceRate").textContent = `${nonce} total transactions from controller`;
+    }
+
+    prevNonce = nonce;
+    nonceHistory.push(nonce);
+    if (nonceHistory.length > 60) nonceHistory.shift();
+    updateNonceChart();
+
+    // Balance
+    document.getElementById("balance").textContent = balance + " BNB";
+
+    // Delegate
+    if (delegateCode !== "0x" && delegateBytes > 100) {
+      document.getElementById("delegateStatus").textContent = "DEPLOYED";
+      document.getElementById("delegateStatus").className = "card-value red";
+      document.getElementById("delegateBytes").textContent = delegateBytes + " bytes. Drainer code active on BSC";
+      document.getElementById("delegateTag").textContent = "DEPLOYED";
+      document.getElementById("delegateTag").className = "tag tag-deployed";
+    } else {
+      document.getElementById("delegateStatus").textContent = "DESTROYED";
+      document.getElementById("delegateStatus").className = "card-value green";
+      document.getElementById("delegateBytes").textContent = "Contract no longer exists";
+      document.getElementById("delegateTag").textContent = "DESTROYED";
+      document.getElementById("delegateTag").className = "tag tag-active";
+      addLog(`<span class="action">DELEGATE DESTROYED</span> Drainer contract is no longer deployed`, true);
+    }
+
+    // Drainer status
+    const isActive = delegateCode !== "0x" && delegateBytes > 100;
+    if (isActive) {
+      document.getElementById("drainerStatus").textContent = "ACTIVE";
+      document.getElementById("drainerStatus").className = "card-value red";
+      document.getElementById("drainerSub").textContent = "Drainer infrastructure operational";
+      document.getElementById("statusPulse").className = "pulse";
+      document.getElementById("statusText").textContent = "DRAINER ACTIVE on BSC";
+      document.getElementById("statusText").style.color = "#f0c850";
+      document.getElementById("controllerTag").textContent = "ACTIVE";
+      document.getElementById("controllerTag").className = "tag tag-active";
+    } else {
+      document.getElementById("drainerStatus").textContent = "INACTIVE";
+      document.getElementById("drainerStatus").className = "card-value green";
+      document.getElementById("drainerSub").textContent = "Delegate contract destroyed";
+      document.getElementById("statusPulse").className = "pulse safe";
+      document.getElementById("statusText").textContent = "Drainer inactive";
+      document.getElementById("statusText").style.color = "#44aa44";
+      document.getElementById("controllerTag").textContent = "INACTIVE";
+    }
+
+    // Victim
+    if (victimDelegated) {
+      document.getElementById("victimTag").textContent = "DELEGATED";
+      document.getElementById("victimTag").className = "tag tag-critical";
+    } else {
+      document.getElementById("victimTag").textContent = "CLEARED";
+      document.getElementById("victimTag").className = "tag tag-active";
+      addLog(`<span class="action">VICTIM CLEARED</span> Known victim wallet delegation removed`, false);
+    }
+
+    // Update timeline nonce
+    const tlNonce = document.getElementById("timelineNonce");
+    if (tlNonce) tlNonce.textContent = nonce + "+";
+    const tlStatus = document.getElementById("timelineStatusText");
+    if (tlStatus) {
+      if (delegateCode !== "0x" && delegateBytes > 100) {
+        tlStatus.textContent = "Drainer infrastructure ACTIVE. Nonce: " + nonce;
+        tlStatus.style.color = "#f0c850";
+      } else {
+        tlStatus.textContent = "Delegate contract destroyed. Drainer may be inactive.";
+        tlStatus.style.color = "#44aa44";
+      }
+    }
+
+    // Update time
+    document.getElementById("lastUpdate").textContent = "Updated " + timeStr();
+
+  } catch(e) {
+    addLog(`<span class="action">RPC ERROR</span> ${e.message}. Retrying in 30s...`, true);
+    document.getElementById("statusText").textContent = "RPC connection error. Retrying...";
+  }
+}
+
+async function checkWallet() {
+  const input = document.getElementById("walletInput").value.trim();
+  const result = document.getElementById("checkResult");
+  const btn = document.getElementById("checkBtn");
+
+  if (!input.match(/^0x[a-fA-F0-9]{40}$/)) {
+    result.style.display = "block";
+    result.className = "check-result error";
+    result.innerHTML = "Invalid address format. Enter a 42-character hex address starting with 0x";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "CHECKING...";
+
+  try {
+    const code = await rpcCall("eth_getCode", [input.toLowerCase(), "latest"]);
+
+    result.style.display = "block";
+
+    if (code === "0x") {
+      result.className = "check-result safe";
+      result.innerHTML = "<strong>SAFE</strong> &mdash; Normal EOA wallet. No delegation detected.";
+      addLog(`Wallet check: <span class="value">${input.slice(0,10)}...</span> = SAFE`, false);
+    } else if (code.startsWith("0xef01")) {
+      const delegate = "0x" + code.slice(6);
+      const isCrimeEnjoyer = delegate.toLowerCase() === DELEGATE.toLowerCase();
+      result.className = "check-result compromised";
+      result.innerHTML = `<strong>COMPROMISED</strong> &mdash; ERC-7702 delegation active!<br>
+        Delegate: <a class="addr" href="https://bscscan.com/address/${delegate}" target="_blank" style="color:#f0c850">${delegate}</a><br>
+        ${isCrimeEnjoyer ? '<strong>This is the CrimeEnjoyer drainer contract.</strong><br>' : ''}
+        DO NOT send any funds to this wallet. All incoming transfers will be auto-forwarded to the attacker.`;
+      addLog(`Wallet check: <span class="value">${input.slice(0,10)}...</span> = <span class="value">COMPROMISED</span> (delegate: ${delegate.slice(0,10)}...)`, true);
+    } else {
+      result.className = "check-result contract";
+      result.innerHTML = `<strong>SMART CONTRACT</strong> &mdash; This is a contract address (${(code.length-2)/2} bytes). Not an EOA wallet.`;
+    }
+  } catch(e) {
+    result.style.display = "block";
+    result.className = "check-result error";
+    result.innerHTML = "RPC error: " + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "CHECK";
+}
+
+document.getElementById("walletInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") checkWallet();
+});
+
+fetchAll();
+setInterval(fetchAll, REFRESH_MS);
+</script>
+</body>
+</html>

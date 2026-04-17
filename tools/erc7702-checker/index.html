@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC-7702 Wallet Delegation Checker | MEFAI Security</title>
+    <meta name="description" content="Check if your BSC or Ethereum wallet has been compromised by an ERC-7702 delegation attack. Free security tool by MEFAI.">
+    <link rel="icon" href="https://raw.githubusercontent.com/mefai-dev/security-audits/master/assets/mefai-icon.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #D4A636;
+            --gold-light: #E8C55A;
+            --gold-dark: #B8891F;
+            --gold-dim: rgba(212,166,54,0.15);
+            --black: #0A0A0A;
+            --black-card: #111111;
+            --black-input: #0D0D0D;
+            --white: #FFFFFF;
+            --gray: #888888;
+            --gray-border: #222222;
+            --red: #FF3B3B;
+            --green: #00D26A;
+            --orange: #FF9500;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+        }
+        .container { max-width: 740px; margin: 0 auto; padding: 32px 16px; }
+
+        /* HEADER */
+        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+        .logo {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 18px; color: var(--black);
+        }
+        h1 { font-size: 24px; font-weight: 700; color: var(--white); }
+        h1 span { color: var(--gold); }
+        .subtitle { color: var(--gray); font-size: 13px; margin-bottom: 36px; margin-left: 56px; }
+
+        /* CHAIN SELECT */
+        .chain-select { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .chain-btn {
+            padding: 10px 22px;
+            background: var(--black-card);
+            border: 1px solid var(--gray-border);
+            border-radius: 8px 2px 8px 2px;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .chain-btn.active {
+            background: var(--gold-dim);
+            border-color: var(--gold);
+            color: var(--gold-light);
+        }
+        .chain-btn:hover { border-color: var(--gold-dark); color: var(--gold); }
+
+        /* INPUT */
+        .input-group { display: flex; gap: 8px; margin-bottom: 16px; }
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 16px;
+            background: var(--black-input);
+            border: 1px solid var(--gray-border);
+            border-radius: 8px 2px 8px 2px;
+            color: var(--white);
+            font-size: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: var(--gold); }
+        input[type="text"]::placeholder { color: #444; }
+
+        /* BUTTONS */
+        button.check {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            border: none;
+            border-radius: 2px 8px 2px 8px;
+            color: var(--black);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
+        }
+        button.check:hover { background: linear-gradient(135deg, var(--gold), var(--gold-light)); }
+        button.check:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        /* RESULTS */
+        .result { margin-top: 24px; padding: 20px; border-radius: 2px 8px 2px 8px; display: none; }
+        .result.safe { background: #0a1a0a; border: 1px solid #1a3a1a; display: block; }
+        .result.danger { background: #1a0808; border: 1px solid #3a1010; display: block; }
+        .result.contract { background: #1a1508; border: 1px solid #3a2a10; display: block; }
+        .result.error { background: var(--black-card); border: 1px solid var(--gray-border); display: block; }
+        .result h2 { font-size: 17px; margin-bottom: 10px; font-weight: 700; }
+        .result.safe h2 { color: var(--green); }
+        .result.danger h2 { color: var(--red); }
+        .result.contract h2 { color: var(--orange); }
+        .result.error h2 { color: var(--gray); }
+        .result p { color: #aaa; font-size: 13px; line-height: 1.7; margin-bottom: 8px; }
+        .result code { background: var(--black); padding: 2px 6px; border-radius: 3px; font-size: 11px; color: var(--gold); word-break: break-all; font-family: 'JetBrains Mono', monospace; }
+        .delegate-addr {
+            background: var(--black);
+            padding: 14px;
+            border-radius: 2px 6px 2px 6px;
+            margin: 12px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--red);
+            word-break: break-all;
+            border-left: 3px solid var(--red);
+        }
+        .known-drainer {
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: #180808;
+            border-radius: 2px 6px 2px 6px;
+            font-size: 12px;
+            color: #ff8888;
+            border-left: 3px solid var(--red);
+        }
+        .safe-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #0a1a0a; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; color: var(--green); border: 1px solid #1a3a1a;
+            margin-top: 8px;
+        }
+
+        /* STATS */
+        .stats { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        .stat {
+            background: var(--black-card);
+            padding: 14px 18px;
+            border-radius: 2px 8px 2px 8px;
+            border: 1px solid var(--gray-border);
+            flex: 1;
+            min-width: 130px;
+        }
+        .stat .num { font-size: 22px; font-weight: 800; color: var(--gold); }
+        .stat .label { font-size: 11px; color: var(--gray); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* BATCH */
+        .toggle-batch {
+            background: none;
+            border: 1px solid var(--gray-border);
+            padding: 8px 18px;
+            border-radius: 2px 6px 2px 6px;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .toggle-batch:hover { border-color: var(--gold); color: var(--gold); }
+        .batch-area { margin-top: 16px; display: none; }
+        .batch-area textarea {
+            width: 100%; height: 120px; padding: 14px;
+            background: var(--black-input);
+            border: 1px solid var(--gray-border);
+            border-radius: 2px 8px 2px 8px;
+            color: var(--white);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            resize: vertical;
+            outline: none;
+        }
+        .batch-area textarea:focus { border-color: var(--gold); }
+        .batch-results { margin-top: 12px; }
+        .batch-row {
+            padding: 10px 14px;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .batch-row .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .batch-row .dot.green { background: var(--green); box-shadow: 0 0 6px rgba(0,210,106,0.4); }
+        .batch-row .dot.red { background: var(--red); box-shadow: 0 0 6px rgba(255,59,59,0.4); }
+        .batch-row .addr { color: #aaa; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+        .batch-row .status { font-weight: 600; }
+        .batch-row .status.safe-text { color: var(--green); }
+        .batch-row .status.danger-text { color: var(--red); }
+
+        /* INFO */
+        .info {
+            margin-top: 36px;
+            padding: 24px;
+            background: var(--black-card);
+            border-radius: 2px 8px 2px 8px;
+            border: 1px solid var(--gray-border);
+        }
+        .info h3 { color: var(--gold); font-size: 14px; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info p { color: #777; font-size: 12px; line-height: 1.8; }
+        .info a { color: var(--gold); text-decoration: none; }
+        .info a:hover { color: var(--gold-light); text-decoration: underline; }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 48px;
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-border);
+        }
+        .footer-logo {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-bottom: 8px;
+        }
+        .footer-logo .mark {
+            width: 24px; height: 24px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 11px; color: var(--black);
+        }
+        .footer-logo span { color: var(--gray); font-size: 13px; font-weight: 600; }
+        .footer p { color: #444; font-size: 11px; margin-top: 4px; }
+        .footer a { color: var(--gold-dark); text-decoration: none; }
+        .footer a:hover { color: var(--gold); }
+
+        /* LOADING */
+        .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* GOLD LINE */
+        .gold-line { width: 60px; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); margin-bottom: 24px; margin-left: 56px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">M</div>
+            <h1>ERC-7702 <span>Delegation Checker</span></h1>
+        </div>
+        <div class="gold-line"></div>
+        <p class="subtitle">Verify if your wallet has been compromised by an ERC-7702 delegation attack</p>
+
+        <div class="chain-select">
+            <div class="chain-btn active" onclick="selectChain(this,'bsc')">BNB Chain</div>
+            <div class="chain-btn" onclick="selectChain(this,'eth')">Ethereum</div>
+            <div class="chain-btn" onclick="selectChain(this,'base')">Base</div>
+            <div class="chain-btn" onclick="selectChain(this,'arb')">Arbitrum</div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="addr" placeholder="0x... wallet address" maxlength="42" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="check" id="checkBtn" onclick="checkWallet()">CHECK WALLET</button>
+
+        <button class="toggle-batch" onclick="toggleBatch()">Batch check multiple wallets</button>
+
+        <div class="batch-area" id="batchArea">
+            <textarea id="batchAddrs" placeholder="Enter multiple addresses, one per line"></textarea>
+            <button class="check" onclick="batchCheck()" style="margin-top:8px">CHECK ALL</button>
+            <div class="batch-results" id="batchResults"></div>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="stats" id="stats" style="display:none">
+            <div class="stat"><div class="num" id="statChecked">0</div><div class="label">Checked</div></div>
+            <div class="stat"><div class="num" id="statSafe">0</div><div class="label">Safe</div></div>
+            <div class="stat"><div class="num" id="statCompromised">0</div><div class="label">Compromised</div></div>
+        </div>
+
+        <div class="info">
+            <h3>What is an ERC-7702 delegation attack?</h3>
+            <p>ERC-7702 allows wallets to delegate execution to a smart contract by signing a single authorization. Attackers trick users into signing a delegation that hands full wallet control to a drainer contract. Once active all funds are drained and future deposits are automatically forwarded to the attacker.</p>
+            <p style="margin-top:10px">This tool calls <code>eth_getCode</code> on your address via public RPC endpoints. Normal wallets return empty code (<code>0x</code>). Compromised wallets return <code>0xef01</code> followed by the delegate contract address.</p>
+            <p style="margin-top:10px">Technical report: <a href="https://github.com/mefai-dev/security-audits/blob/master/audits/FOUR-MEME-ERC7702-SECURITY-REPORT.md" target="_blank">MEFAI ERC-7702 Security Analysis</a></p>
+        </div>
+
+        <div class="footer">
+            <div class="footer-logo">
+                <div class="mark">M</div>
+                <span>MEFAI Security Research</span>
+            </div>
+            <p><a href="https://github.com/mefai-dev/security-audits" target="_blank">github.com/mefai-dev/security-audits</a></p>
+            <p style="margin-top:6px">No data collected. All checks run client-side against public RPC endpoints.</p>
+        </div>
+    </div>
+
+    <script>
+        var rpcs={bsc:["https://bsc-dataseed1.binance.org","https://bsc-dataseed2.binance.org","https://bsc-dataseed3.binance.org","https://bsc-dataseed4.binance.org"],eth:["https://eth.llamarpc.com","https://rpc.ankr.com/eth","https://ethereum-rpc.publicnode.com"],base:["https://mainnet.base.org","https://base-rpc.publicnode.com"],arb:["https://arb1.arbitrum.io/rpc","https://arbitrum-one-rpc.publicnode.com"]};
+        var chain="bsc",checked=0,safe=0,compromised=0;
+        var knownDrainers={"91c478e3a87626be374e0c29338ad68f38556e2c":"CrimeEnjoyer Drainer","a7bff280ba6308ebc8fa3f5a1fa1b455aa57e972":"CrimeEnjoyer Controller"};
+
+        function selectChain(el,c){chain=c;document.querySelectorAll('.chain-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+        function toggleBatch(){var a=document.getElementById('batchArea');a.style.display=a.style.display==='none'?'block':'none'}
+
+        async function rpcCall(addr){var endpoints=rpcs[chain];var rpc=endpoints[Math.floor(Math.random()*endpoints.length)];var resp=await fetch(rpc,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",method:"eth_getCode",params:[addr,"latest"],id:1})});var data=await resp.json();return data.result||"0x"}
+
+        async function checkWallet(){
+            var addr=document.getElementById('addr').value.trim();
+            if(!addr.match(/^0x[a-fA-F0-9]{40}$/)){showResult('error','Invalid Address','Please enter a valid 42-character hex address starting with 0x.');return}
+            var btn=document.getElementById('checkBtn');
+            btn.disabled=true;btn.innerHTML='<span class="loading"></span> CHECKING...';
+            try{var code=await rpcCall(addr);analyzeCode(addr,code);checked++;updateStats()}
+            catch(e){showResult('error','RPC Error','Could not reach blockchain. Try again. '+e.message)}
+            btn.disabled=false;btn.textContent='CHECK WALLET';
+        }
+
+        function analyzeCode(addr,code){
+            if(code==="0x"||code==="0x0"||!code){
+                safe++;
+                var h='<h2>SAFE</h2><p>No ERC-7702 delegation detected. This is a normal wallet (EOA).</p>';
+                h+='<div class="safe-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00D26A" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Clean</div>';
+                document.getElementById('result').className='result safe';
+                document.getElementById('result').innerHTML=h;
+                document.getElementById('result').style.display='block';
+            } else if(code.toLowerCase().startsWith("0xef01")){
+                compromised++;
+                var delegate=code.slice(6);if(delegate.startsWith("00"))delegate=delegate.slice(2);
+                var drainerName=knownDrainers[delegate.toLowerCase()]||null;
+                var h='<h2>COMPROMISED - Active ERC-7702 Delegation</h2>';
+                h+='<p>This wallet has an active ERC-7702 delegation. All execution is controlled by an external contract.</p>';
+                h+='<div class="delegate-addr">Delegate: 0x'+delegate+'</div>';
+                if(drainerName)h+='<div class="known-drainer">Identified: '+drainerName+'</div>';
+                h+='<p><strong>Do immediately:</strong></p>';
+                h+='<p>1. Do NOT send any funds to this address<br>2. Create a new wallet with a fresh seed phrase<br>3. Check all other wallets that share the same seed<br>4. Report the delegate address to chain security</p>';
+                h+='<p style="margin-top:12px;font-size:11px"><code>'+code+'</code></p>';
+                document.getElementById('result').className='result danger';
+                document.getElementById('result').innerHTML=h;
+                document.getElementById('result').style.display='block';
+            } else {
+                showResult('contract','Smart Contract','This address is a smart contract ('+((code.length/2)-1)+' bytes). ERC-7702 check applies to EOA wallets only.');
+            }
+        }
+
+        function showResult(type,title,msg){var el=document.getElementById('result');el.className='result '+type;el.innerHTML='<h2>'+title+'</h2><p>'+msg+'</p>';el.style.display='block'}
+        function updateStats(){document.getElementById('stats').style.display='flex';document.getElementById('statChecked').textContent=checked;document.getElementById('statSafe').textContent=safe;document.getElementById('statCompromised').textContent=compromised}
+
+        async function batchCheck(){
+            var addrs=document.getElementById('batchAddrs').value.trim().split('\n').map(a=>a.trim()).filter(a=>a.match(/^0x[a-fA-F0-9]{40}$/));
+            if(!addrs.length)return;
+            var container=document.getElementById('batchResults');
+            container.innerHTML='<p style="color:#888;font-size:12px">Checking '+addrs.length+' wallets...</p>';
+            for(var i=0;i<addrs.length;i++){
+                try{
+                    var code=await rpcCall(addrs[i]);
+                    var isDanger=code.toLowerCase().startsWith("0xef01");
+                    var isSafe=(code==="0x"||code==="0x0"||!code);
+                    checked++;if(isSafe)safe++;if(isDanger)compromised++;updateStats();
+                    var row=document.createElement('div');row.className='batch-row';
+                    row.innerHTML='<div class="dot '+(isDanger?'red':'green')+'"></div><div class="addr">'+addrs[i]+'</div><div class="status '+(isDanger?'danger-text':'safe-text')+'">'+(isDanger?'COMPROMISED':isSafe?'Safe':'Contract')+'</div>';
+                    container.appendChild(row);
+                }catch(e){
+                    var row=document.createElement('div');row.className='batch-row';
+                    row.innerHTML='<div class="addr">'+addrs[i]+'</div><div class="status" style="color:#666">Error</div>';
+                    container.appendChild(row);
+                }
+                await new Promise(r=>setTimeout(r,200));
+            }
+        }
+
+        document.getElementById('addr').addEventListener('keypress',function(e){if(e.key==='Enter')checkWallet()});
+    </script>
+</body>
+</html>
+<!-- rebuilt Sat Apr  4 09:06:30 UTC 2026 -->
