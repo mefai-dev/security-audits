@@ -5,7 +5,7 @@ Platform:     LAB Terminal (formerly Memes Lab)
 Website:      https://lab.pro
 Chain:        Multi-chain (ETH, BSC, Polygon, Solana, TON, Arbitrum, Base)
 Audit Date:   April 18, 2026
-Auditor:      Independent Security Researcher
+Auditor:      MEFAI Security Research
 ```
 
 ## Overall Security Score: 78/100
@@ -36,13 +36,6 @@ User funds appear secure. Main concerns relate to transparency and code provenan
 | Session Management | **SECURE** | JWT tokens with refresh mechanism |
 | Telegram Integration | **SECURE** | Uses official Telegram WebApp SDK |
 
-**Verification:**
-```javascript
-// From ExportPrivateKey module
-accountStore.loadPrivateKey(walletId) // Requires PIN
-accountStore.loadMnemonic(pin)        // Requires PIN
-```
-
 ### Private Key Security
 
 | Finding | Status | Evidence |
@@ -52,27 +45,14 @@ accountStore.loadMnemonic(pin)        // Requires PIN
 | Encrypted Storage | **ENABLED** | Keys stored via Privy embedded wallet |
 | Export Protection | **ENABLED** | PIN required before key display |
 
-**Verification:**
-```bash
-# Searched all JS files for private key patterns
-grep -E "0x[a-fA-F0-9]{64}" *.js
-# Result: Only ECC curve constants, no actual private keys
-```
-
 ### Network Security
 
 | Finding | Status | Evidence |
 |---------|--------|----------|
 | HTTPS Enforcement | **ENABLED** | All endpoints use TLS |
-| WSS for WebSocket | **ENABLED** | wss://gatewaywss.lab.pro |
+| WSS for WebSocket | **ENABLED** | Secure WebSocket connections |
 | No Mixed Content | **VERIFIED** | No HTTP resources loaded |
 | Cloudflare Protection | **ENABLED** | DDoS and WAF active |
-
-**Verification:**
-```bash
-curl -I https://lab.pro
-# Returns: HTTP/2 200, server: cloudflare
-```
 
 ### API Security
 
@@ -83,20 +63,13 @@ curl -I https://lab.pro
 | Error Handling | **PROPER** | Generic error messages, no stack traces |
 | Rate Limiting | **LIKELY** | Cloudflare provides rate limiting |
 
-**Verification:**
-```bash
-curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
-  -d '{"refreshToken":"invalid"}'
-# Returns: "refreshToken must be a UUID" (validates input)
-```
-
 ### Third Party Integrations
 
 | Integration | Status | Purpose |
 |-------------|--------|---------|
 | Privy | **TRUSTED** | Embedded wallet infrastructure |
 | Sentry | **ENABLED** | Error monitoring and reporting |
-| Amplitude | **ENABLED** | Analytics (privacy consideration) |
+| Amplitude | **ENABLED** | Analytics |
 | WalletConnect | **ENABLED** | External wallet connections |
 
 ---
@@ -107,8 +80,8 @@ curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 
 | Finding | Severity | Description |
 |---------|----------|-------------|
-| Code Provenance | INFO | Shares codebase with Alpha One without public disclosure |
-| Incomplete Rebrand | INFO | manifest.json contains Alpha One branding |
+| Code Provenance | INFO | Shares codebase with another platform without public disclosure |
+| Incomplete Rebrand | INFO | manifest.json contains different branding |
 | No Public Audit | INFO | No third party security audit published |
 
 ### Technical Findings
@@ -116,25 +89,29 @@ curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 | Finding | Severity | Description |
 |---------|----------|-------------|
 | Exposed API Key | MEDIUM | API key hardcoded in client JS: `aaed****************************9cf6` (redacted by MEFAI for security) |
-| Admin Panel Accessible | LOW | admin.lab.pro publicly reachable |
+| Admin Panel Accessible | LOW | Administrative interface publicly reachable |
 | Source Maps Available | LOW | Debug information accessible |
 
 ---
 
 ## Code Provenance Analysis
 
-### Timeline Comparison
+### Why Does LAB Use Another Platform's Code?
+
+During analysis, we discovered that LAB.pro shares identical compiled JavaScript files with Alpha One (app.alpha-dex.io). This raises questions about code origin and licensing.
+
+### Timeline
 
 | Date | Event |
 |------|-------|
 | March 2024 | Alpha DEX initial release |
 | August 2024 | Alpha DEX rebrands to Alpha One |
-| September 6, 2024 | Memes Lab launched by MemeFi Ventures |
-| October 25, 2024 | LAB token launches on Solana |
+| September 2024 | Memes Lab launches |
+| October 2024 | LAB token launches on Solana |
 | February 2025 | Memes Lab rebrands to LAB |
-| February 25, 2025 | LAB raises $2.3M seed funding |
+| February 2025 | LAB raises $2.3M seed funding |
 
-**Alpha One predates Memes Lab by approximately 6 months.**
+**Alpha One predates LAB by approximately 6 months.**
 
 ### Identical Files Evidence
 
@@ -148,7 +125,7 @@ curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 
 **5 out of 5 compared files are byte-for-byte identical (100% match)**
 
-### Manifest Comparison
+### Manifest Evidence
 
 **LAB (lab.pro/manifest.json):**
 ```json
@@ -168,47 +145,16 @@ curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 
 **Status: MISMATCH** - LAB manifest contains Alpha One branding
 
----
+### UI/UX Similarity
 
-## Team & Funding
+Visual analysis shows both platforms share nearly identical user interface designs, layouts, and interaction patterns. This further supports the shared codebase conclusion.
 
-### LAB Team
+### Possible Explanations
 
-| Name | Role | Verified |
-|------|------|----------|
-| Naveed Rao | CEO | LinkedIn profile exists |
-| Vova Sadkov | COO & Co-founder | LinkedIn profile exists, Forbes CIS featured |
-| Usman Rafiq | CTO | Team page mention |
-| Alex Kotlyarov | CMO | Team page mention |
-
-### Alpha One Team
-
-| Name | Role | Verified |
-|------|------|----------|
-| Emil Panakhov | Co-founder | Public interviews, conference speaker |
-| Dmitry Evmenov | Co-founder | Team mentions |
-
-**Different teams operate each platform.**
-
-### LAB Funding ($2.3M Seed Round)
-
-**Lead Investor:** Lemniscap
-
-**Participants:**
-- Animoca Brands
-- OKX Ventures
-- Gate Ventures
-- MEXC Ventures
-- Kucoin Ventures
-- TVM Ventures
-- Mirana Ventures
-- Oak Grove Ventures
-- NewTribe Capital
-- GSR
-- Cypher Capital
-- Castrum Capital
-- Amber Group
-- Presto
+1. LAB licensed Alpha One's code (no public announcement)
+2. Both platforms use the same white-label solution
+3. Common development contractor
+4. Code fork without disclosure
 
 ---
 
@@ -217,15 +163,12 @@ curl -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 ### Verify File Hash Match
 
 ```bash
-# Download files
 curl -s "https://app.alpha-dex.io/assets/js/utils-EkE17y1u.js" -o alpha-utils.js
 curl -s "https://lab.pro/assets/js/utils-EkE17y1u.js" -o lab-utils.js
 
-# Compare hashes
 md5sum alpha-utils.js lab-utils.js
 # Expected: Same hash for both files
 
-# Binary diff
 diff alpha-utils.js lab-utils.js
 # Expected: No output (identical files)
 ```
@@ -234,21 +177,7 @@ diff alpha-utils.js lab-utils.js
 
 ```bash
 curl -s "https://lab.pro/manifest.json" | jq '.name'
-# Expected output: "Alpha One - Trading Terminal"
-```
-
-### Verify API Security
-
-```bash
-# Test protected endpoint without auth
-curl -s "https://gatewaylb.lab.pro/api/v1/wallet"
-# Expected: {"success":false,"message":"Unauthorized"}
-
-# Test input validation
-curl -s -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"not-a-uuid"}'
-# Expected: "refreshToken must be a UUID"
+# Output: "Alpha One - Trading Terminal"
 ```
 
 ---
@@ -257,7 +186,7 @@ curl -s -X POST "https://gatewaylb.lab.pro/api/v1/user/login" \
 
 ### Security Assessment
 
-LAB.pro implements industry standard security practices for a cryptocurrency trading terminal:
+LAB.pro implements industry standard security practices:
 
 **Strengths:**
 - PIN protection for sensitive operations
@@ -278,22 +207,12 @@ Evidence strongly suggests LAB uses Alpha One's codebase:
 - 5 identical JavaScript files
 - Identical manifest branding
 - Alpha One released 6 months earlier
-- Different development teams
 
-**Possible explanations:**
-1. LAB licensed Alpha One's code (no public announcement)
-2. Both use same white-label platform
-3. Common development contractor
-4. Code fork without disclosure
+No official licensing or partnership has been publicly announced.
 
 ### User Recommendation
 
 **Overall: SAFE TO USE** with awareness of transparency concerns.
-
-Users should:
-- Enable PIN protection
-- Understand code provenance is unclear
-- Keep transaction sizes reasonable until third party audit is published
 
 ---
 
@@ -303,34 +222,11 @@ Users should:
 |----------|-----|
 | LAB Website | https://lab.pro |
 | LAB Documentation | https://docs.lab.pro |
-| LAB Twitter | https://x.com/memeslabxyz |
 | Alpha One Website | https://alpha-one.io |
 | Alpha One App | https://app.alpha-dex.io |
-| Alpha One Telegram | https://t.me/alpha_web3_bot |
-| LAB Funding Announcement | https://decrypt.co/307628 |
 
 ---
-
-## Appendix: Evidence Files
-
-All evidence files are included in this repository:
-
-```
-evidence/
-├── js-files/
-│   ├── alpha-one-*.js
-│   └── lab-*.js
-├── hashes/
-│   └── hash-comparison.txt
-└── comparison/
-    └── final-verification.txt
-```
-
----
-
-## Disclaimer
-
-This audit was conducted for educational and security research purposes using publicly available information. All findings are documented with verification steps that can be independently reproduced. This report does not imply malicious intent by any party and is not financial advice.
 
 **Report Version:** 1.0
 **Last Updated:** April 18, 2026
+**Auditor:** MEFAI Security Research
