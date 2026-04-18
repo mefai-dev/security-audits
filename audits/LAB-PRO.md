@@ -1,4 +1,4 @@
-# Security Audit Report: LAB.pro
+# Security Audit Report - LAB.pro
 
 ```
 Platform:     LAB Terminal (formerly Memes Lab)
