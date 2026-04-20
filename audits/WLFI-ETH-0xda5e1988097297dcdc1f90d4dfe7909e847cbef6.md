@@ -35,7 +35,7 @@ We audited the World Liberty Financial (WLFI) governance token deployed on Ether
 
 **Critical Discovery:** The on-chain implementation bytecode (18,657 bytes) is **drastically different** from what the GitHub source code (`Stablecoin.sol`, ~7,385 bytes compiled) would produce. Through bytecode selector extraction and 4byte.directory resolution, we identified **105 additional function selectors** in the on-chain code that do not exist in the published GitHub source. Of these, **28 are privileged admin functions** including `ownerReallocateFrom(address,address,uint256)` which allows the owner to transfer tokens from any holder without consent.
 
-Additionally, the `frozen()` function — a public mapping in the GitHub code that should never revert — **reverts when called on-chain**, proving the deployed contract is fundamentally different from the published source.
+Additionally, the `frozen()` function ··· a public mapping in the GitHub code that should never revert ··· **reverts when called on-chain**, proving the deployed contract is fundamentally different from the published source.
 
 ### Risk Rating
 
@@ -61,23 +61,23 @@ The on-chain WLFI token implementation contains undisclosed administrative capab
 | 1. Ownership & Access Control | `owner()` returns multisig `0x5be9...`, can pause/blacklist/reallocate, no timelock | Owner can call destructive functions | **0/20** |
 | 2. Supply & Minting | `mint(uint256)` exists, onlyOwner, no supply cap enforced | Unlimited minting by single owner | **0/20** |
 | 3. Liquidity & LP Security | DEX liquidity: $3.4M Uniswap pool, no LP lock mechanism found | LP unlocked / no LP lock | **0/20** |
-| 4. Code & Program Safety | 4 Critical + 5 High findings, uses proxy/upgrade, on-chain code ≠ GitHub | Critical severity findings (-3 proxy, -3 unverified real source) | **0/15** |
+| 4. Code & Program Safety | 4 Critical + 5 High findings, uses proxy/upgrade, on-chain code ·�� GitHub | Critical severity findings (-3 proxy, -3 unverified real source) | **0/15** |
 | 5. Fee & Transfer Mechanics | No transfer fee, but freeze/blacklist/pause all active, undisclosed `ownerReallocateFrom` | Freeze/blacklist/pause authority active | **0/15** |
 | 6. Transparency & Metadata | On-chain code (18,657 bytes) does NOT match GitHub source (7,385 bytes compiled), 28 undisclosed admin functions, 3 undisclosed privileged addresses | Source code effectively not verified | **0/10** |
 | **TOTAL** | | | **0/100** |
 
-**Rating: CRITICAL RISK (0/100) — Immediate danger. Do not interact.**
+**Rating: CRITICAL RISK (0/100) ··· Immediate danger. Do not interact.**
 
 ### Score Justification
 
 Every scoring category receives the minimum score (0) because:
 
-1. **Ownership (0/20):** Owner holds `pause()`, `freeze()`, `ownerSetBlacklistStatus()`, `ownerReallocateFrom()` — the most destructive set of admin functions possible, with no timelock.
+1. **Ownership (0/20):** Owner holds `pause()`, `freeze()`, `ownerSetBlacklistStatus()`, `ownerReallocateFrom()` ··· the most destructive set of admin functions possible, with no timelock.
 2. **Supply (0/20):** `mint(uint256)` with no cap, controlled by single owner.
 3. **Liquidity (0/20):** Primary DEX pool has only $3.4M liquidity. No LP lock mechanism.
-4. **Code Safety (0/15):** 4 Critical findings. Proxy pattern. Published source code does not match deployed bytecode — unprecedented.
+4. **Code Safety (0/15):** 4 Critical findings. Proxy pattern. Published source code does not match deployed bytecode ··· unprecedented.
 5. **Fee Mechanics (0/15):** `freeze()`, `isBlacklisted()`, `pause()`, and `ownerReallocateFrom()` all active. Owner can seize any holder's tokens.
-6. **Transparency (0/10):** GitHub shows 118-line `Stablecoin.sol`. On-chain implementation has 105 extra functions (28 dangerous admin functions) in 18,657 bytes. This is not a discrepancy — it is a completely different contract.
+6. **Transparency (0/10):** GitHub shows 118-line `Stablecoin.sol`. On-chain implementation has 105 extra functions (28 dangerous admin functions) in 18,657 bytes. This is not a discrepancy ··· it is a completely different contract.
 
 ---
 
@@ -162,11 +162,11 @@ Every scoring category receives the minimum score (0) because:
 
 **Description:**
 
-The GitHub repository `worldliberty/usd1-smart-contracts` presents `Stablecoin.sol` (118 lines) as the WLFI token source code. When compiled, this produces approximately 7,385 bytes of bytecode (matching the USD1 implementation). However, the WLFI token implementation on-chain is **18,657 bytes** — 11,272 bytes larger.
+The GitHub repository `worldliberty/usd1-smart-contracts` presents `Stablecoin.sol` (118 lines) as the WLFI token source code. When compiled, this produces approximately 7,385 bytes of bytecode (matching the USD1 implementation). However, the WLFI token implementation on-chain is **18,657 bytes** ··· 11,272 bytes larger.
 
 Bytecode selector extraction reveals **105 additional function selectors** not present in `Stablecoin.sol`, including governance, vesting, blacklist, and admin reallocation functions.
 
-Furthermore, calling `frozen(address)` — a public mapping in `Stablecoin.sol` that should never revert — **returns REVERT on-chain**, proving the deployed contract uses different code.
+Furthermore, calling `frozen(address)` ··· a public mapping in `Stablecoin.sol` that should never revert ··· **returns REVERT on-chain**, proving the deployed contract uses different code.
 
 **Impact:**
 
@@ -364,10 +364,10 @@ Implement an on-chain supply cap.
 **Description:**
 
 The contract contains an undisclosed "guardian" role with the following capabilities:
-- `guardianSetBlacklistStatus(address,bool)` — Can blacklist any address
-- `guardianPause()` — Can pause all transfers
-- `isGuardian(address)` — Check guardian status
-- `ownerSetGuardian(address,bool)` — Owner assigns guardians
+- `guardianSetBlacklistStatus(address,bool)` ··· Can blacklist any address
+- `guardianPause()` ··· Can pause all transfers
+- `isGuardian(address)` ··· Check guardian status
+- `ownerSetGuardian(address,bool)` ··· Owner assigns guardians
 
 The multisig is NOT the guardian (`isGuardian(multisig) = false`), meaning an unknown third party holds guardian privileges.
 
