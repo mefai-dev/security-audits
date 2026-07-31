@@ -55,7 +55,7 @@ MEFAI verified DOT's chain parameters and reviewed the 2026 monetary reform:
 | Token identity / decimals | DOT, 10 decimals, verified via chain properties |
 | Supply | ~1.70 billion total (~1.69 to 1.70 billion circulating) |
 | Inflation | ~3.11 percent (reduced from ~10 percent, March 2026) |
-| Hard cap | ~2.1 billion DOT (encoded March 2026); 13.14 percent issuance reduction every two years |
+| Hard cap | ~2.1 billion DOT (encoded March 14, 2026); 13.14 percent issuance reduction every two years |
 | Validators | ~600 active; ~29,000 direct nominators (plus ~35,000 in nomination pools) |
 
 **Interpretation.** DOT is a genuine, liquid staking and governance token. The March 2026 reform (inflation cut plus a newly encoded hard cap) materially improves its monetary profile and addresses the long standing high inflation critique, a real positive. The caution moves to architecture churn and adoption.
