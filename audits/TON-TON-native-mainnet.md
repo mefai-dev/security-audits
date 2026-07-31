@@ -26,8 +26,8 @@ This report is an independent claim versus reality assessment by Mefai Security 
 
 TON is a real, technically capable network with a genuine mass distribution advantage through its Telegram integration. It is not a scam. But it is the lowest scoring network in this set (54/100, MEDIUM to HIGH) because two structural facts sit in sharp tension with its "decentralized" branding:
 
-1. **Extreme early supply concentration.** Independent on chain analysis indicates a related cluster of wallets mined roughly **85.8 percent of TON supply** during a brief ~51 day proof of work window in mid 2020 (about 96 percent of supply distributed to only ~248 addresses), and reporting places **over 68 percent of supply in whale wallets**. For a proof of stake network where stake equals security and voting power, this is a material centralization of both economics and consensus.
-2. **Deep, deepening Telegram dependency.** TON was built by Telegram, abandoned after a 2020 SEC settlement, and revived by a foundation; it is now Telegram's sole official crypto rail (a wallet/Mini App mandate), so its usage, price and even a major messenger's balance sheet are structurally tied together, the opposite of a "no single point of control" network.
+1. **Extreme early supply concentration.** A single, publicly reproducible independent on chain analysis indicates a related cluster of wallets mined roughly **85.8 percent of TON supply** during a brief ~51 day proof of work window in mid 2020 (about 96 percent of supply distributed via only ~248 Large Giver contracts), and reporting places **over 68 percent of supply in whale wallets**. For a proof of stake network where stake equals security and voting power, this is a material centralization of both economics and consensus.
+2. **Deep, deepening Telegram dependency.** TON was built by Telegram, abandoned after a 2020 SEC settlement, and revived by a foundation; it is now Telegram's sole official crypto rail (the official wallet and payments rail), so its usage, price and even a major messenger's balance sheet are structurally tied together, the opposite of a "no single point of control" network.
 
 The technology and reach are real; the caution is supply concentration, Telegram dependency and marketing that outruns on chain demand.
 
@@ -38,8 +38,8 @@ The technology and reach are real; the caution is supply concentration, Telegram
 | Field | Value |
 |-------|-------|
 | **Token** | Toncoin (TON) |
-| **Total supply** | ~5.15 to 5.19 billion TON (uncapped, inflationary PoS) |
-| **Circulating** | ~2.4 to 2.7 billion (roughly half) |
+| **Total supply** | ~5.2 billion TON (uncapped, inflationary PoS) |
+| **Circulating** | ~2.7 billion (roughly half) |
 | **Initial distribution** | Proof of work "mining" (now ended) |
 | **Validator stake minimum** | ~300,000 TON protocol minimum (~400,000 practical) |
 
@@ -51,9 +51,9 @@ MEFAI reviewed TON's supply, distribution history and consensus parameters:
 
 | Check | Result |
 |-------|--------|
-| Total supply | ~5.15 to 5.19 billion TON (uncapped, low PoS issuance ~0.5 to 2 percent) |
-| Circulating | ~2.4 to 2.7 billion (roughly half) |
-| Early distribution | ~85.8 percent mined by a related wallet cluster in a ~51 day 2020 window; ~96 percent to ~248 addresses |
+| Total supply | ~5.2 billion TON (uncapped, low PoS issuance ~0.5 to 2 percent) |
+| Circulating | ~2.7 billion (roughly half) |
+| Early distribution | ~85.8 percent mined by a related wallet cluster in a ~51 day 2020 window; ~96 percent via ~248 Large Giver contracts |
 | Whale concentration | Over 68 percent of supply in whale wallets (per independent analysis) |
 | Consensus | Proof of stake; validators lock ~300,000+ TON |
 | Burns | ~50 percent of fees plus slashed stake burned (partial offset) |
@@ -74,7 +74,7 @@ MEFAI reviewed TON's supply, distribution history and consensus parameters:
 
 > Site: "Telegram integration gives blockchain technology unprecedented reach among its 1B+ active users"; "a blockchain ecosystem built into Telegram... for 1B+ users."
 
-**Reality: real reach, real dependency.** The Telegram funnel is a genuine, unique distribution advantage. But TON is marketed as a standalone decentralized network merely "integrated" with Telegram, while in practice it is Telegram's **sole official crypto infrastructure** (a wallet and Mini App mandate), and its usage, price and a major messenger's finances move together. If Telegram faces regulatory action or changes course, TON is directly exposed, a **single point dependency**, not the decentralized resilience the branding implies. The "1B+ users" reach is a Telegram figure; independent active on chain wallets are a small fraction of it.
+**Reality: real reach, real dependency.** The Telegram funnel is a genuine, unique distribution advantage. But TON is marketed as a standalone decentralized network merely "integrated" with Telegram, while in practice it is Telegram's **sole official crypto infrastructure** (the official wallet and payments rail), and its usage, price and a major messenger's finances move together. If Telegram faces regulatory action or changes course, TON is directly exposed, a **single point dependency**, not the decentralized resilience the branding implies. The "1B+ users" reach is a Telegram figure; independent active on chain wallets are a small fraction of it.
 
 ---
 
@@ -116,9 +116,9 @@ MEFAI reviewed TON's supply, distribution history and consensus parameters:
 | Item | Value |
 |------|-------|
 | Token | Toncoin (TON) |
-| Total supply | ~5.15 to 5.19 billion (uncapped) |
-| Circulating | ~2.4 to 2.7 billion |
-| Early distribution | ~85.8 percent mined by a related cluster (~248 addresses, 2020) |
+| Total supply | ~5.2 billion (uncapped) |
+| Circulating | ~2.7 billion |
+| Early distribution | ~85.8 percent mined by a related cluster (~248 Large Giver contracts, 2020) |
 | Consensus | Proof of stake; validator minimum ~300,000 TON |
 | Issuance / burn | ~0.5 to 2 percent issuance; ~50 percent of fees burned |
 
@@ -144,6 +144,6 @@ TON is a real, capable network with a genuine and unique Telegram distribution a
 
 ## 11. Verification
 
-- MEFAI on chain analysis: review of TON's supply (~5.15 to 5.19 billion, uncapped), the documented early proof of work distribution (~85.8 percent to a related cluster; ~96 percent to ~248 addresses in 2020), whale concentration analysis (over 68 percent), and consensus parameters (validator stake minimum, fee burn).
+- MEFAI on chain analysis: review of TON's supply (~5.2 billion, uncapped), the documented early proof of work distribution (~85.8 percent to a related cluster; ~96 percent via ~248 Large Giver contracts in 2020), whale concentration analysis (over 68 percent), and consensus parameters (validator stake minimum, fee burn).
 - The supply, distribution and validator set are publicly verifiable on the TON explorers.
 - Project statements: the TON website and coin page (the "1B+ users", validator consensus and "proof of work mining" wording, and the throughput figures), and the public record of the 2019 to 2020 Telegram / SEC matter.
