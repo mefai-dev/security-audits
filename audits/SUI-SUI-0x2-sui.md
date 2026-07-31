@@ -26,8 +26,8 @@ This report is an independent claim versus reality assessment by Mefai Security 
 
 Sui is a real, technically capable Move based layer 1 with genuine sub second finality, a parallel execution consensus (Mysticeti), and a genuinely fixed supply cap. It is a legitimate network. The MEDIUM rating reflects a throughput marketing gap and a supply overhang/concentration gap, offset by the fixed cap:
 
-1. **A recent "6 million plus TPS" headline is an off chain figure, not on chain consensus.** MEFAI's review finds the project's own blog attributes that number to off chain "programmable tunnels" (payment channels), not the public mainnet. The documented on chain benchmarks (~300,000 to 400,000 TPS) are controlled 10 to 100 node tests, while live mainnet runs in the hundreds of TPS (peaks around 1,000). Sub second finality is genuine.
-2. **Large insider and foundation supply overhang with cliff unlocks.** Roughly 20 percent of supply sits with investors and early contributors, on top of a Foundation controlled reserve exceeding 50 percent released after 2030, with lumpy cliff unlocks through 2030.
+1. **A recent "6 million plus TPS" headline is an off chain figure, not on chain consensus.** MEFAI's review finds the project's own blog attributes that number to off chain "programmable tunnels" (payment channels), not the public mainnet. The documented on chain benchmarks (~300,000 to 400,000 TPS) are controlled 10 to 50 node tests, while live mainnet runs in the hundreds of TPS (peaks around 1,000). Sub second finality is genuine.
+2. **Large insider and foundation supply overhang with cliff unlocks.** Roughly 20 percent of supply sits with investors and early contributors, on top of a reserve exceeding 50 percent released after 2030 (a long tail held for the foundation and ecosystem), with lumpy cliff unlocks through 2030.
 3. **Stake concentration is an acknowledged concern**, with an indicative validator Nakamoto figure around 18.
 
 To its credit, SUI has a **genuinely hard capped 10 billion supply**, verified, which is a real structural positive.
@@ -42,7 +42,7 @@ To its credit, SUI has a **genuinely hard capped 10 billion supply**, verified, 
 | **Decimals (verified)** | 9 (1 SUI = 10^9 MIST) |
 | **Max supply** | 10,000,000,000 SUI (hard cap, verified) |
 | **Circulating** | ~40.5 percent (~4.05 billion), rest vesting to ~2030 |
-| **Allocation** | Post 2030 reserve 52.17 percent; community reserve 10.65 percent; stake subsidies 9.49 percent; investors (Series A+B) ~14.1 percent; early contributors 6.13 percent; company treasury ~1.64 percent |
+| **Allocation** | Post 2030 reserve 52.17 percent; community reserve 10.65 percent; stake subsidies 9.49 percent; investors (Series A+B) ~14.1 percent; early contributors 6.13 percent; company treasury ~1.64 percent; community access program 5.82 percent |
 
 ---
 
@@ -68,8 +68,8 @@ MEFAI verified SUI's supply cap and reviewed distribution and consensus:
 
 **Reality: sub second finality real, throughput headlines are lab/off chain.** The ~0.5 second commit and parallel execution are genuine. But:
 - The **"6 million plus TPS" figure is off chain**: the project's own post attributes it to "programmable tunnels" (off chain payment channels), not the public mainnet consensus.
-- The **300,000 to 400,000 TPS figures are controlled benchmarks** (10 to 100 node tests), and the older "297,000 TPS" number is a controlled test benchmark, not a current headline.
-- **Live mainnet runs roughly three orders of magnitude lower**, hundreds of TPS with peaks near 1,000; the best controlled figure (~103,000 certificates per second) is still a lab number.
+- The **300,000 to 400,000 TPS figures are controlled benchmarks** (10 to 50 node tests), and the older "297,000 TPS" number is a controlled test benchmark, not a current headline.
+- **Live mainnet runs roughly three orders of magnitude lower**, hundreds of TPS with peaks near 1,000.
 
 This is capacity/headroom, not demonstrated demand, and the "6 million TPS" framing conflates an off chain channel throughput with on chain performance.
 
@@ -77,7 +77,7 @@ This is capacity/headroom, not demonstrated demand, and the "6 million TPS" fram
 
 ## 4. Claim vs Reality: Supply Cap vs Unlock Overhang
 
-The **10 billion hard cap is genuine and verified**, a real positive that many peers lack. But circulating supply is only ~40.5 percent, and the schedule to ~2030 is dominated by **cliff unlocks** (all at once releases after a waiting period), producing lumpy supply shocks. Insider and investor allocations total roughly **22 percent**, and a **Foundation controlled reserve exceeding 50 percent** is released after 2030, a very large long tail overhang. Effective decentralization of holdings is therefore far lower than the fixed cap headline suggests.
+The **10 billion hard cap is genuine and verified**, a real positive that many peers lack. But circulating supply is only ~40.5 percent, and the schedule to ~2030 is dominated by **cliff unlocks** (all at once releases after a waiting period), producing lumpy supply shocks. Insider and investor allocations total roughly **20 percent**, and a **reserve exceeding 50 percent** is released after 2030, a very large long tail overhang. Effective decentralization of holdings is therefore far lower than the fixed cap headline suggests.
 
 ---
 
