@@ -30,7 +30,7 @@ Aptos is a real, technically capable Move based layer 1 with genuine sub second 
 2. **The "community 51 percent" allocation is Foundation heavy.** A large share of the "community" bucket is held by the Foundation and the core company, so genuinely community controlled float at genesis is far below the headline, and insider (contributor plus investor) allocations continue to unlock on a four year schedule concluding October 2026.
 3. **Decentralization is undercut by infrastructure concentration:** while the validator distribution is moderate, more than a third of stake runs on a single cloud provider, and Foundation directed delegation dominates validator stake.
 
-MEFAI verified an on chain circulating supply on the order of 797 million APT. A 2026 tokenomics update introduced a protocol level hard cap of 2.1 billion APT, so circulating supply is roughly 38 percent of the eventual cap.
+MEFAI verified an on chain circulating supply on the order of 845 million APT. Governance Proposal 183 (about March 2026) introduced a protocol level hard cap of 2.1 billion APT, so circulating supply is roughly 40 percent of the cap.
 
 ---
 
@@ -41,9 +41,9 @@ MEFAI verified an on chain circulating supply on the order of 797 million APT. A
 | **Native coin** | `0x1::aptos_coin::AptosCoin` (APT) |
 | **Decimals (verified)** | 8 |
 | **Genesis supply** | 1,000,000,000 APT at genesis (October 2022) |
-| **Hard cap** | 2.1 billion APT (introduced by a 2026 tokenomics update; previously uncapped) |
-| **Circulating (verified)** | ~797 million APT (~38 percent of the 2.1 billion cap; published circulating figures range roughly 640 to 845 million) |
-| **Staking inflation** | Launch schedule 7 percent declining 1.5 percent per year to a 3.25 percent floor; 2026 governance reduced the reward rate further (toward the mid single digits) |
+| **Hard cap** | 2.1 billion APT (introduced by governance Proposal 183, about March 2026; previously uncapped) |
+| **Circulating (verified)** | ~845 million APT (~40 percent of the 2.1 billion cap; total minted supply ~1.206 billion, ~57 percent of the cap) |
+| **Staking inflation** | Launch schedule 7 percent declining 1.5 percent per year to a 3.25 percent floor; 2026 governance reduced the reward rate further (to about 2.6 percent APR) |
 | **Allocation** | Community 51.02 percent (Foundation heavy); core contributors 19 percent; Foundation 16.5 percent; investors 13.48 percent |
 
 ---
@@ -55,9 +55,9 @@ MEFAI read the AptosCoin resource and reviewed staking and validator parameters:
 | Check | Result |
 |-------|--------|
 | Coin identity / decimals | "Aptos Coin", 8 decimals, verified |
-| Circulating supply | ~797 million APT (~38 percent of the 2.1 billion cap) |
-| Genesis / cap | 1 billion at genesis; 2.1 billion hard cap added by a 2026 tokenomics update |
-| Staking inflation | Launch schedule 7 percent to 3.25 percent; reduced further by 2026 governance |
+| Circulating supply | ~845 million APT (~40 percent of the 2.1 billion cap) |
+| Genesis / cap | 1 billion at genesis; 2.1 billion hard cap added by governance Proposal 183 (about March 2026) |
+| Staking inflation | Launch schedule 7 percent to 3.25 percent; reduced further by 2026 governance (AIP 119) to about 2.6 percent APR |
 | Validators | ~92 to 115 active; validator distribution Nakamoto ~13 to 14 |
 | Infrastructure | More than a third of stake on a single cloud provider (operational Nakamoto 1) |
 
@@ -89,7 +89,7 @@ MEFAI read the AptosCoin resource and reviewed staking and validator parameters:
 | APT 002 | **MEDIUM** | "Community 51 percent" is Foundation heavy (roughly 410 million with the Foundation, 100 million with the core company); genuinely community controlled float far below the headline. |
 | APT 003 | **MEDIUM** | Infrastructure concentration: more than a third of stake on a single cloud provider (operational Nakamoto 1); Foundation directed stake dominates. |
 | APT 004 | **LOW** | Insider (contributor + investor) unlocks on a four year schedule concluding October 2026 (dilution overhang). |
-| APT 005 | **INFO** | 2026 tokenomics update added a 2.1 billion hard cap, bounding long run dilution (positive). |
+| APT 005 | **INFO** | governance Proposal 183 (about March 2026) added a 2.1 billion hard cap, bounding long run dilution (positive). |
 | APT 006 | **INFO** | Genuine sub second finality and working parallel execution (positive). |
 
 ---
@@ -113,7 +113,7 @@ MEFAI read the AptosCoin resource and reviewed staking and validator parameters:
 |------|-------|
 | Native coin | `0x1::aptos_coin::AptosCoin` (8 decimals) |
 | Genesis / cap | 1 billion genesis; 2.1 billion hard cap (2026 update) |
-| Circulating (verified) | ~797 million APT (~38 percent of cap) |
+| Circulating (verified) | ~845 million APT (~40 percent of cap) |
 | Staking inflation | Launch 7 percent to 3.25 percent; reduced by 2026 governance |
 | Validators | ~92 to 115; distribution Nakamoto ~13 to 14; >1/3 stake on one cloud (operational Nakamoto 1) |
 
@@ -140,6 +140,6 @@ Aptos is a real, capable Move layer 1 with genuine sub second finality and paral
 
 ## 10. Verification
 
-- MEFAI on chain analysis: a read of the AptosCoin resource (identity, 8 decimals, circulating supply on the order of 797 million) and review of staking inflation and validator distribution parameters, plus the 2026 tokenomics update introducing the 2.1 billion hard cap.
+- MEFAI on chain analysis: a read of the AptosCoin resource (identity, 8 decimals, circulating supply on the order of 845 million) and review of staking inflation and validator distribution parameters, plus governance Proposal 183 (about March 2026) introducing the 2.1 billion hard cap.
 - The coin resource, supply and validator set are publicly verifiable on the Aptos explorers.
 - Project statements: the Aptos Labs blog ("fastest blockchain... sub second E2E latency", "peak throughput of 30,000 TPS"), the Aptos tokenomics materials (genesis 1 billion, allocation splits, staking reward schedule, the 2026 hard cap), and the technical materials citing the 160,000 TPS maximum.
