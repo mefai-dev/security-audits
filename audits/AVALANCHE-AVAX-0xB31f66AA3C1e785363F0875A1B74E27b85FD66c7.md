@@ -27,7 +27,7 @@ This report is an independent claim versus reality assessment by Mefai Security 
 Avalanche is one of the strongest rated networks in this set (77/100, LOW risk). It combines a genuinely capped supply, real sub second finality, and a working sovereign chain (subnet / L1) architecture. It is a blue chip network. The points that keep it below the top band are structural, and in two cases come directly from the project's own documentation:
 
 1. **Despite the "hard capped 720M + fee burn" framing, AVAX is currently inflationary by the project's own admission.** Avalanche's own tokenomics FAQ states AVAX "will almost always remain an inflationary asset" until it approaches the cap, because minted staking rewards currently exceed burned fees. Circulating supply is roughly 432 million of the 720 million cap and rising.
-2. **Primary Network security carries a real capital barrier** (a 2,000 AVAX minimum stake) and a bounded validator set (roughly 1,200 to 1,300 validators).
+2. **Primary Network security carries a real capital barrier** (a 2,000 AVAX minimum stake) and a validator set of roughly 1,200 to 1,300 validators.
 3. **New sovereign L1s can launch with small, often permissioned validator sets**, so "a universe of sovereign blockchains" is real but each new chain bootstraps its own decentralization from a low base.
 4. **Insider adjacent allocations are around 30 percent** of max supply (team, foundation, strategic/private/seed), vesting toward 2030.
 
@@ -82,7 +82,7 @@ MEFAI verified the token identity via the canonical WAVAX wrapper on the Avalanc
 
 ## 5. Claim vs Reality: Decentralization and the Validator Barrier
 
-Avalanche advertises broad ecosystem access ("no gatekeepers"). At the security layer, however, **Primary Network validation still requires a 2,000 AVAX minimum stake** plus reliable infrastructure, and the validator set is bounded (roughly 1,200 to 1,300 validators). New sovereign L1s frequently start with **small or permissioned validator sets**. Combined with insider adjacent allocations of roughly **30 percent** (team, foundation, strategic, private and seed, vesting toward 2030), the effective decentralization of both validation and holdings is lower than the "sovereign blockchains" framing implies. These specifics live in docs and tokenomics trackers, not the consumer marketing pages.
+Avalanche advertises broad ecosystem access ("no gatekeepers"). At the security layer, however, **Primary Network validation still requires a 2,000 AVAX minimum stake** plus reliable infrastructure, and the validator set is currently around 1,200 to 1,300 validators. New sovereign L1s frequently start with **small or permissioned validator sets**. Combined with insider adjacent allocations of roughly **30 percent** (team, foundation, strategic, private and seed, vesting toward 2030), the effective decentralization of both validation and holdings is lower than the "sovereign blockchains" framing implies. These specifics live in docs and tokenomics trackers, not the consumer marketing pages.
 
 ---
 
@@ -91,7 +91,7 @@ Avalanche advertises broad ecosystem access ("no gatekeepers"). At the security 
 | ID | Severity | Finding |
 |----|----------|---------|
 | AVAX 001 | **LOW** | AVAX is currently net inflationary (rewards exceed burns) by the project's own admission, despite the 720M hard cap / burn framing. |
-| AVAX 002 | **LOW** | Primary Network validation requires a 2,000 AVAX minimum; bounded validator set (~1,200 to 1,300). |
+| AVAX 002 | **LOW** | Primary Network validation requires a 2,000 AVAX minimum; validator set of ~1,200 to 1,300. |
 | AVAX 003 | **LOW** | New sovereign L1s can launch with small/permissioned validator sets; per validator monthly fee is a real recurring cost. |
 | AVAX 004 | **LOW** | Insider adjacent allocations ~30 percent of max supply, vesting toward 2030. |
 | AVAX 005 | **INFO** | Genuine 720M hard cap with fee burns: credible long run monetary policy (positive). |
@@ -127,7 +127,7 @@ Avalanche advertises broad ecosystem access ("no gatekeepers"). At the security 
 
 ## 9. Conclusion
 
-Avalanche is a genuine blue chip network with a real 720 million hard cap and genuine sub second finality, earning the top score in this set at 77/100 (LOW risk). It is not higher because the network is net inflationary today by its own admission, Primary Network security carries a 2,000 AVAX barrier with a bounded validator set, new sovereign L1s can start small and permissioned, and roughly 30 percent of supply sits with insiders vesting to 2030. Strong network; the caution is net inflation, the staking barrier and early L1 centralization, not legitimacy.
+Avalanche is a genuine blue chip network with a real 720 million hard cap and genuine sub second finality, earning the top score in this set at 77/100 (LOW risk). It is not higher because the network is net inflationary today by its own admission, Primary Network security carries a 2,000 AVAX barrier and a validator set currently around 1,200 to 1,300, new sovereign L1s can start small and permissioned, and roughly 30 percent of supply sits with insiders vesting to 2030. Strong network; the caution is net inflation, the staking barrier and early L1 centralization, not legitimacy.
 
 ---
 
