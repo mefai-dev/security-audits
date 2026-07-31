@@ -28,7 +28,7 @@ NEAR is a real, technically credible sharded proof of stake network with low fee
 
 1. **The "1 million TPS" headline is a theoretical target, not observed reality.** NEAR's homepage states it "supports 1 million TPS," but sustained mainnet throughput is orders of magnitude lower. This is the single largest claim vs reality gap.
 2. **The recent "user owned AI" / "currency of agents" positioning overstates the on chain role.** NEAR's AI compute runs in centralized, off chain hardware enclaves (a NEAR AI cloud); the blockchain provides identity, settlement and payments, not the intelligence itself.
-3. **Governance and holdings are less decentralized than branded.** The initial distribution sent about 36 percent to core team and backers versus roughly 12 percent via the community sale, validator seats are concentrated, and the core team advanced a protocol upgrade after a community governance vote failed to reach supermajority (validators themselves reached the required stake supermajority).
+3. **Governance and holdings are less decentralized than branded.** The initial distribution sent about 36 percent to core team and backers versus roughly 12 percent via the community sale, validator seats are concentrated, and the core team advanced a protocol upgrade after a stake weighted governance poll failed to reach its 66.67 percent supermajority, then shipped it via a client upgrade that validators adopted at the required 80 percent of block producing stake.
 
 To its credit, NEAR shipped genuine stateless validation sharding, and cut gross inflation from 5 percent to 2.5 percent in late 2025. MEFAI verified a native supply of roughly 1.302 billion NEAR.
 
@@ -81,7 +81,7 @@ MEFAI read the native NEAR supply and inflation parameters directly from the net
 ## 5. Claim vs Reality: Decentralization
 
 - The initial distribution sent roughly **36 percent to core team and backers** and only about **12 percent via the community sale**.
-- Validator participation is concentrated (a low hundreds validator set, with governance historically limited to a few dozen effective validator voters), and the **core team advanced a protocol upgrade after a community governance (token holder) vote failed to reach supermajority**, while the validator node vote itself reached the required 80 percent stake supermajority, a move publicly criticized by validators.
+- Validator participation is concentrated (a low hundreds validator set, with governance historically limited to a few dozen effective validator voters), and the **core team advanced a protocol upgrade after a stake weighted validator governance poll failed to reach its 66.67 percent supermajority** (it drew about 45 percent support), then bundled the change into a client upgrade that validators adopted at the required 80 percent of block producing stake, a move publicly criticized by some validators.
 - "House of Stake / decentralized, AI augmented governance" is real as a structure but coexists with this concentration.
 
 ---
@@ -92,7 +92,7 @@ MEFAI read the native NEAR supply and inflation parameters directly from the net
 |----|----------|---------|
 | NEAR 001 | **MEDIUM** | "Supports 1 million TPS" is a theoretical target; sustained mainnet throughput is orders of magnitude lower. |
 | NEAR 002 | **MEDIUM** | "User owned AI" runs in centralized off chain enclaves; NEAR is the payment/identity rail, not on chain inference. |
-| NEAR 003 | **LOW** | Insider heavy initial allocation (~36 percent team/backers vs ~12 percent via the community sale); validator/governance concentration; core team advanced an upgrade after a community governance vote failed to reach supermajority (validators themselves approved it). |
+| NEAR 003 | **LOW** | Insider heavy initial allocation (~36 percent team/backers vs ~12 percent via the community sale); validator/governance concentration; core team advanced an upgrade after a governance poll failed to reach its 66.67 percent supermajority, shipping it via a client upgrade validators adopted at 80 percent stake. |
 | NEAR 004 | **LOW** | "Deflationary trajectory" only became plausible after the 2025 inflation cut and 2026 buyback; burns were negligible historically. |
 | NEAR 005 | **INFO** | Stateless validation sharding (Nightshade 2.0) genuinely shipped; inflation capped at 2.5 percent (positives). |
 | NEAR 006 | **INFO** | Verified ~1.302 billion supply, near fully unlocked; real usage and low fees (positive). |
