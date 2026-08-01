@@ -27,7 +27,7 @@ This report is an independent claim versus reality assessment by Mefai Security 
 Chainlink (LINK) is the industry standard decentralized oracle network, with a genuine, immutable, non mintable Ethereum token, real revenue, and blue chip integrations. It is not a scam. The rating reflects real centralization behind the decentralized branding:
 
 1. **The token is clean and immutable:** MEFAI confirms a fixed 1 billion LINK supply on an immutable Ethereum contract with no owner and no mint function, so there is no inflation or contract level rug vector.
-2. **But a large share of supply sits in team controlled reserves.** On the order of a third of the total supply is held in non circulating reserves controlled by the core team and released over time to fund node incentives and ecosystem programs, a persistent overhang.
+2. **But a meaningful share of supply sits in team controlled reserves.** Roughly a quarter of the total supply (about 25 to 30 percent) is held in non circulating reserves controlled by the core team and released over time to fund node incentives and ecosystem programs, a persistent overhang.
 3. **The oracle network is real but the node operator sets are curated,** and protocol upgrades and key parameters depend on a core team and a permissioned decentralized oracle network model rather than fully permissionless participation.
 4. **The value driver is genuine** (real usage, real fee revenue, deep integrations, and staking), but the CCIP and cross chain unification narrative is still maturing.
 
@@ -43,8 +43,8 @@ The product and usage are real and best in class; the caution is a large team co
 | **Contract (Ethereum, verified)** | `0x514910771AF9Ca656af840dff83E8264EcF986CA` |
 | **Decimals** | 18 |
 | **Supply** | 1,000,000,000 LINK, fixed (an immutable ERC 677 style token, no owner, no mint function) |
-| **Reserves** | On the order of a third of supply held in non circulating reserves controlled by the core team, released over time |
-| **Multichain** | LINK is deployed on many chains; liquidity is being unified via CCIP and a mint and burn model on some chains |
+| **Reserves** | Roughly a quarter of supply (about 25 to 30 percent) held in non circulating reserves controlled by the core team, released over time |
+| **Multichain** | LINK is deployed on many chains; liquidity is being unified via CCIP using a lock and mint model (native LINK locked on Ethereum, wrapped LINK minted on other chains) |
 
 ---
 
@@ -59,7 +59,7 @@ MEFAI verified LINK on Ethereum:
 | Mint / owner | No mint function and no owner on the canonical Ethereum contract (immutable), a strong positive |
 | Reserves | A large share of supply is non circulating and team controlled, funding node and ecosystem incentives |
 | Usage | Real, widely integrated oracle usage with genuine fee revenue and staking (Oracle staking is live) |
-| Cross chain | CCIP and a mint and burn model unify LINK liquidity across chains (a newer, evolving model) |
+| Cross chain | CCIP unifies LINK liquidity using a lock and mint model (native LINK locked on Ethereum, wrapped LINK minted elsewhere), a newer, evolving model |
 
 **Interpretation.** The canonical LINK token is immutable and non mintable, so there is no inflation or contract backdoor, a genuine strength versus most tokens. The main cautions are a large team controlled reserve overhang, curated oracle node operator sets, and protocol control that is not fully permissionless.
 
@@ -75,10 +75,10 @@ MEFAI verified LINK on Ethereum:
 
 ## 4. Claim vs Reality: Reserves, Control and Value
 
-- **Reserve overhang:** on the order of a third of the 1 billion supply sits in non circulating reserves controlled by the core team and released over time to pay node operators and fund ecosystem growth, a persistent structural sell side consideration.
+- **Reserve overhang:** roughly a quarter of the 1 billion supply (about 25 to 30 percent) sits in non circulating reserves controlled by the core team and released over time to pay node operators and fund ecosystem growth, a persistent structural sell side consideration.
 - **Curated node and upgrade control:** node operator sets are vetted and protocol upgrades depend on the core team, so control is more centralized than the decentralized branding implies.
 - **Supply integrity (positive):** the token is immutable and non mintable, so the overhang is release driven, not new emission.
-- **Value:** LINK has real usage and fee revenue, but the token is down roughly 70 to 80 percent from its 2021 peak.
+- **Value:** LINK has real usage and fee revenue, but the token is down roughly 85 percent from its 2021 peak.
 
 ---
 
@@ -88,7 +88,7 @@ MEFAI verified LINK on Ethereum:
 |----|----------|---------|
 | LINK 001 | **MEDIUM** | A large share of supply (on the order of a third) is in non circulating team controlled reserves released over time, a persistent overhang. |
 | LINK 002 | **MEDIUM** | Curated decentralization: vetted oracle node operator sets and core team dependent protocol upgrades, against the decentralized framing. |
-| LINK 003 | **LOW** | The CCIP cross chain mint and burn unification model is newer and adds cross chain trust surface. |
+| LINK 003 | **LOW** | The CCIP cross chain lock and mint unification model is newer and adds cross chain trust surface. |
 | LINK 004 | **LOW** | Deep drawdown from the 2021 peak; the traditional finance and AI narrative is still maturing. |
 | LINK 005 | **INFO** | Immutable, non mintable 1 billion token with no owner (a strong contract level positive), real usage, revenue and staking. |
 
@@ -114,8 +114,8 @@ MEFAI verified LINK on Ethereum:
 | Contract (Ethereum) | `0x514910771AF9Ca656af840dff83E8264EcF986CA` |
 | Decimals | 18 |
 | Supply | 1,000,000,000 LINK (fixed, immutable, no mint) |
-| Reserves | On the order of a third non circulating, team controlled |
-| Cross chain | CCIP and a mint and burn model |
+| Reserves | Roughly a quarter (25 to 30 percent) non circulating, team controlled |
+| Cross chain | CCIP, a lock and mint model |
 
 ---
 
