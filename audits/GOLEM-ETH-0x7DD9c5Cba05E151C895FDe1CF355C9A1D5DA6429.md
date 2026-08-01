@@ -44,7 +44,7 @@ The software, track record and clean supply are real strengths; the caution is m
 | **Decimals** | 18 |
 | **Supply** | ~796 million GLM on the contract; a fixed combined GNT and GLM cap of about 1 billion |
 | **Emission** | Non inflationary: new GLM only appears via the one to one migration from the older GNT (a mint bound to that migration, capped at the original supply) |
-| **Governance** | Founder and foundation led (Golem Factory), not a broad DAO |
+| **Governance** | Founder and company led (Golem Factory, a company), no protocol level token voting DAO |
 
 ---
 
@@ -59,9 +59,9 @@ MEFAI verified GLM on Ethereum:
 | Mint | A mint function exists but is bound to the one to one GNT migration (capped at the original supply), so there is no discretionary inflation |
 | Cap | A fixed combined GNT and GLM cap of about 1 billion (non inflationary) |
 | Onboarding | Permissionless provider onboarding (anyone can run a provider node) |
-| Governance | Steered by the founding foundation (Golem Factory), a directional centralization |
+| Governance | Steered by the founding company (Golem Factory, a company; a separate Golem Foundation runs public goods funding), no protocol level token voting DAO |
 
-**Interpretation.** GLM is a clean, effectively non inflationable token (the mint is migration bound, not discretionary), and the network is real and permissionless, genuine strengths. The cautions are fundamental: modest usage, a founder and foundation led direction, and a valuation disconnected from realized demand.
+**Interpretation.** GLM is a clean, effectively non inflationable token (the mint is migration bound, not discretionary), and the network is real and permissionless, genuine strengths. The cautions are fundamental: modest usage, a founder and company led direction, and a valuation disconnected from realized demand.
 
 ---
 
@@ -77,7 +77,7 @@ MEFAI verified GLM on Ethereum:
 
 - **Clean, fixed cap supply (positive):** the combined GNT and GLM cap is about 1 billion and is not discretionarily mintable, so there is no dilution or emission risk; the ~796 million on chain reflects un migrated GNT.
 - **Modest realized usage:** transacted compute is small relative to the valuation, a common pattern where price outruns realized demand.
-- **Directional centralization:** the roadmap is founder and foundation led (Golem Factory), not a decentralized DAO, though this is control of direction, not of supply.
+- **Directional centralization:** the roadmap is founder and company led (Golem Factory), not a decentralized DAO, though this is control of direction, not of supply.
 - **Value:** the token is down roughly 93 percent from its 2018 peak across two full market cycles.
 
 ---
@@ -90,7 +90,7 @@ MEFAI verified GLM on Ethereum:
 | GLM 002 | **MEDIUM** | No breakout adoption after nearly a decade; the GPU and AI compute pivot is early. |
 | GLM 003 | **LOW** | Competitive erosion from newer, better funded GPU compute networks. |
 | GLM 004 | **LOW** | Deep drawdown (~93 percent from the 2018 peak) and thin liquidity. |
-| GLM 005 | **INFO** | Clean, fixed combined cap of about 1 billion with a migration bound mint (non inflationary), real open source software and permissionless onboarding; founder and foundation led direction. |
+| GLM 005 | **INFO** | Clean, fixed combined cap of about 1 billion with a migration bound mint (non inflationary), real open source software and permissionless onboarding; founder and company led direction. |
 
 ---
 
@@ -101,7 +101,7 @@ MEFAI verified GLM on Ethereum:
 | Token legitimacy | Low risk | Verified, clean, fixed cap |
 | Supply / minting | Low risk | Migration bound mint, no discretionary inflation |
 | Usage reality | Medium risk | Modest, self reported usage vs valuation |
-| Decentralization | Low to medium risk | Founder and foundation led direction; permissionless onboarding |
+| Decentralization | Low to medium risk | Founder and company led direction; permissionless onboarding |
 | Product reality | Medium risk | Real software, no breakout after nearly a decade |
 | Value / volatility | Medium to high risk | ~93 percent drawdown, thin liquidity |
 
@@ -134,12 +134,12 @@ Golem (GLM) is one of the oldest decentralized compute projects, with real open 
 
 **For users:**
 - Value the real software, long track record and clean supply on their merits.
-- Understand realized usage is modest relative to the valuation, that direction is foundation led, and model the drawdown.
+- Understand realized usage is modest relative to the valuation, that direction is company led, and model the drawdown.
 
 ---
 
 ## 10. Verification
 
-- MEFAI on chain analysis: a direct read of the GLM token on Ethereum (identity, 18 decimals, the ~796 million on chain supply, and the migration bound mint against a fixed ~1 billion combined cap) and review of the provider and requestor marketplace and the foundation led governance.
+- MEFAI on chain analysis: a direct read of the GLM token on Ethereum (identity, 18 decimals, the ~796 million on chain supply, and the migration bound mint against a fixed ~1 billion combined cap) and review of the provider and requestor marketplace and the company led governance.
 - The contract address and supply are publicly verifiable on the Ethereum explorers.
 - Project statements: the project's own pages (the worldwide supercomputer and decentralized compute framing) and the published tokenomics and migration mechanics.
