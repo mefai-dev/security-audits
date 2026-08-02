@@ -11,8 +11,8 @@
 | **Contract / Program** | `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn` |
 | **Chain** | Solana |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
-| **Mefai Security Score** | **60/100** |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
+| **Mefai Security Score** | **50/100** |
 | **Overall Risk** | **MEDIUM** |
 | **Verdict** | **Flagged** |
 | **Classification** | Public |
@@ -44,7 +44,7 @@ Roam (ROAM) is a decentralized wireless DePIN project, formerly known as MetaBlo
 
 ### Overall Risk Assessment: MEDIUM
 
-MEFAI onchain analysis places Roam at 60 out of 100 (MEDIUM risk, Flagged).
+MEFAI onchain analysis places Roam at 50 out of 100 (MEDIUM risk, Flagged).
 
 ---
 
@@ -76,35 +76,42 @@ The website and documentation describe a fixed maximum supply of 1,000,000,000 R
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The address roam.xyz did not resolve from our node during this review. Roam presents mainly through roam.network and its mobile apps. Because the mint is not exposed on a single canonical page, confirm the official ROAM mint from the project docs before trading.
+
+
+---
+
+## 5. Findings by Severity
 
 - HIGH: the mint authority is not renounced (supply is not cryptographically fixed at the advertised cap). MEDIUM: the freeze authority is not renounced (the issuer can freeze individual holder accounts). LOW: circulating and unlock figures vary across trackers. INFO: a real DePIN product with a clean standard SPL mint and no transfer fee or hook.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
-| Ownership control | 7 |
-| Supply and minting | 7 |
-| Liquidity and market | 11 |
-| Code safety | 13 |
-| Transfer neutrality | 14 |
-| Transparency | 8 |
-| **Total** | **60/100** |
+| Ownership control | 6 |
+| Supply and minting | 6 |
+| Liquidity and market | 10 |
+| Code safety | 12 |
+| Transfer neutrality | 12 |
+| Transparency | 4 |
+| **Total** | **50/100** |
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
-Claim vs reality audit of Roam (ROAM). A legitimate decentralized wireless DePIN, formerly MetaBlox, with a real product and broad exchange listings on a clean standard SPL mint with no transfer fee, but both the mint authority and the freeze authority remain active and not renounced, so the advertised one billion cap is a policy statement rather than an enforced onchain limit and the issuer can also freeze individual accounts. On the MEFAI scale this token scores 60 out of 100 and is classified Flagged.
+Claim vs reality audit of Roam (ROAM). A legitimate decentralized wireless DePIN, formerly MetaBlox, with a real product and broad exchange listings on a clean standard SPL mint with no transfer fee, but both the mint authority and the freeze authority remain active and not renounced, so the advertised one billion cap is a policy statement rather than an enforced onchain limit and the issuer can also freeze individual accounts. On the MEFAI scale this token scores 50 out of 100 and is classified Flagged.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Solana.
+- Methodology: manual review, onchain analysis using read only public RPC on Solana, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `solana RPC`

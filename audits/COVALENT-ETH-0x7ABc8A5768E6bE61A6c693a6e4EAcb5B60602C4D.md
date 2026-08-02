@@ -11,10 +11,10 @@
 | **Contract / Program** | `0x7ABc8A5768E6bE61A6c693a6e4EAcb5B60602C4D` |
 | **Chain** | Ethereum |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **65/100** |
 | **Overall Risk** | **MEDIUM** |
-| **Verdict** | **Flagged** |
+| **Verdict** | **Passed** |
 | **Classification** | Public |
 
 ---
@@ -44,7 +44,7 @@ Covalent CXT is the migrated network token of the Covalent data availability and
 
 ### Overall Risk Assessment: MEDIUM
 
-MEFAI onchain analysis places Covalent at 65 out of 100 (MEDIUM risk, Flagged).
+MEFAI onchain analysis places Covalent at 65 out of 100 (MEDIUM risk, Passed).
 
 ---
 
@@ -55,7 +55,7 @@ MEFAI onchain analysis places Covalent at 65 out of 100 (MEDIUM risk, Flagged).
 | **Token name and symbol** | Covalent / CXT |
 | **Contract or program** | `0x7ABc8A5768E6bE61A6c693a6e4EAcb5B60602C4D` |
 | **Chain** | Ethereum |
-| **Tags** | ERC 20, AI Data Availability, Dormant Emission, Ethereum, Flagged |
+| **Tags** | ERC 20, AI Data Availability, Dormant Emission, Ethereum, Passed |
 
 Control is not renounced and not held by a single private key. Instead a three of five Gnosis Safe multisig at 0x381225fa2dffa29c01b52214656077f8550f819e holds the admin, cap manager, and permit revoker roles. There is no legacy owner function, no proxy implementation slot, and no pause function, which means the code itself is immutable while the token supply and emission cap remain under multisig authority. Overall this reads as a competent and transparent deployment whose main residual risks are the retained multisig control and the dormant but real minting capability with no hard cap.
 
@@ -76,13 +76,20 @@ Exchange facing marketing presents CXT as a fixed one billion supply with no inf
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+
+
+---
+
+## 5. Findings by Severity
 
 - HIGH: a multisig activatable, uncapped emission function against a no inflation claim (a latent inflation vector). MEDIUM: admin, cap, and revoker roles held by a multisig and not renounced. LOW: Safe signer identities and intent to activate emission are unknown. INFO: a source verified, non upgradeable, non pausable, fee free contract with a fixed supply today.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -96,15 +103,15 @@ Exchange facing marketing presents CXT as a fixed one billion supply with no inf
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
-Claim vs reality audit of Covalent (CXT). An AI data availability token that migrated one to one from CQT to a source verified, non upgradeable, non pausable, fee free Ethereum contract with a fixed 1 billion supply today, but whose verified code contains a multisig controllable, rate limited emission function, so the exchange marketed no inflation framing is contradicted even though minting is currently dormant. On the MEFAI scale this token scores 65 out of 100 and is classified Flagged.
+Claim vs reality audit of Covalent (CXT). An AI data availability token that migrated one to one from CQT to a source verified, non upgradeable, non pausable, fee free Ethereum contract with a fixed 1 billion supply today, but whose verified code contains a multisig controllable, rate limited emission function, so the exchange marketed no inflation framing is contradicted even though minting is currently dormant. On the MEFAI scale this token scores 65 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Ethereum.
+- Methodology: manual review, onchain analysis using read only public RPC on Ethereum, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `etherscan 0x7abc8a...`

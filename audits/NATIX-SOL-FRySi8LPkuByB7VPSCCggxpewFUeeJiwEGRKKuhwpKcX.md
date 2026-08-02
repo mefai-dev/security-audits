@@ -11,7 +11,7 @@
 | **Contract / Program** | `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX` |
 | **Chain** | Solana |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **72/100** |
 | **Overall Risk** | **LOW** |
 | **Verdict** | **Passed** |
@@ -75,13 +75,20 @@ The site advertises a 100 billion max supply, and the chain shows roughly 99.29 
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official site is reachable and references audits, so confirm that any audit claim links to a real auditor. The token address is not printed in the static page, so confirm the official NATIX mint from the docs before interacting.
+
+
+---
+
+## 5. Findings by Severity
 
 - MEDIUM: a large unlock overhang into 2028 (dilution). LOW: liquidity depth and pool locks were not verifiable on chain. INFO: both authorities renounced on a standard fee free SPL token (a strong contract level positive) and a real dashcam mapping product with exchange listings.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -95,15 +102,15 @@ The site advertises a 100 billion max supply, and the chain shows roughly 99.29 
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 Claim vs reality audit of NATIX Network (NATIX). A real Solana mapping DePIN whose SPL token has both mint and freeze authorities renounced, so supply is permanently fixed at the roughly 99.29 billion already minted against a 100 billion cap, with no transfer fee, the main consideration being a large unlock schedule that leaves only about 40 percent circulating today. On the MEFAI scale this token scores 72 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Solana.
+- Methodology: manual review, onchain analysis using read only public RPC on Solana, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `explorer.solana FRySi...`

@@ -11,7 +11,7 @@
 | **Contract / Program** | `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935` |
 | **Chain** | Base |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **80/100** |
 | **Overall Risk** | **LOW** |
 | **Verdict** | **Passed** |
@@ -76,13 +76,20 @@ The public claims of a fixed 8,189,700,000 supply, one token per living human at
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+
+
+---
+
+## 5. Findings by Severity
 
 - LOW: single agent concentration and high market volatility; liquidity burn not independently re traced. INFO: immutable, ownerless, fixed supply with no mint, no proxy, no pause, and no fee (one of the cleanest contract profiles in this batch).
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -96,15 +103,15 @@ The public claims of a fixed 8,189,700,000 supply, one token per living human at
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 Claim vs reality audit of Freysa (FAI). An autonomous AI agent token on Base whose contract is one of the cleanest in this set, an immutable, ownerless, fixed supply OpenZeppelin ERC20 with no mint function, no proxy, no pause, and no transfer fee, so the only material risk is market and narrative volatility around a single AI agent rather than any contract control. On the MEFAI scale this token scores 80 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Base.
+- Methodology: manual review, onchain analysis using read only public RPC on Base, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `basescan 0xb33ff54...`

@@ -11,7 +11,7 @@
 | **Contract / Program** | `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195` |
 | **Chain** | Ethereum |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **74/100** |
 | **Overall Risk** | **LOW** |
 | **Verdict** | **Passed** |
@@ -75,13 +75,20 @@ The official blog publishes a five billion maximum supply and a four year vestin
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official site is reachable and references audits, so confirm that any audit claim links to a real auditor. The token address is not printed in the static page, so confirm the official SXT address from the docs before interacting.
+
+
+---
+
+## 5. Findings by Severity
 
 - MEDIUM: an active pauser and admin role can halt transfers and manage roles (a centralization vector). LOW: a large team and investor unlock schedule over four years (overhang); role holders not enumerable on chain. INFO: a fixed supply with no mint function on a non proxy, fee free contract (a strong positive).
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -95,15 +102,15 @@ The official blog publishes a five billion maximum supply and a four year vestin
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 Claim vs reality audit of Space and Time (SXT). A verifiable data layer token for apps and AI whose fixed 5 billion supply and absence of a mint function are confirmed on chain across three independent sources, on a non proxy, fee free contract, the main considerations being an active pauser and admin role and a large team and investor unlock schedule over four years. On the MEFAI scale this token scores 74 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Ethereum.
+- Methodology: manual review, onchain analysis using read only public RPC on Ethereum, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `spaceandtime.io/blog SXT token`

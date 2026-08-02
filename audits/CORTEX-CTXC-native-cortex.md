@@ -11,7 +11,7 @@
 | **Contract / Program** | `native-cortex` |
 | **Chain** | Cortex |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **73/100** |
 | **Overall Risk** | **LOW** |
 | **Verdict** | **Passed** |
@@ -75,13 +75,20 @@ The project describes CTXC as the native asset of its own public chain, and inde
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+
+
+---
+
+## 5. Findings by Severity
 
 - MEDIUM: the deprecated Ethereum mirror is pausable by an externally owned owner (a transfer freeze capability on the mirror, currently unpaused). LOW: reduced project activity and liquidity; the mirror should not be sent to a native chain address. INFO: a fixed, non mintable cap with no fee and a non proxy contract, plus open source code and a public explorer.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -95,15 +102,15 @@ The project describes CTXC as the native asset of its own public chain, and inde
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 Claim vs reality audit of Cortex (CTXC). A mature AI inference Layer 1 whose native coin has a fixed 299.79 million cap and no on chain mint, with a deprecated Ethereum mirror that is non upgradeable and fee free, the main considerations being a pause capable mirror owner and markedly reduced activity since the 2018 to 2020 peak. On the MEFAI scale this token scores 73 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Cortex.
+- Methodology: manual review, onchain analysis using read only public RPC on Cortex, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `github CortexFoundation/tech-doc`

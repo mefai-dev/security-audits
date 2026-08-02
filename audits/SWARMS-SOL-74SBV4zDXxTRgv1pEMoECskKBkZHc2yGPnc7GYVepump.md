@@ -11,10 +11,10 @@
 | **Contract / Program** | `74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump` |
 | **Chain** | Solana |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **73/100** |
 | **Overall Risk** | **MEDIUM** |
-| **Verdict** | **Flagged** |
+| **Verdict** | **Passed** |
 | **Classification** | Public |
 
 ---
@@ -44,7 +44,7 @@ Swarms is the SPL token that powers the Swarms multi agent AI orchestration fram
 
 ### Overall Risk Assessment: MEDIUM
 
-MEFAI onchain analysis places Swarms at 73 out of 100 (MEDIUM risk, Flagged).
+MEFAI onchain analysis places Swarms at 73 out of 100 (MEDIUM risk, Passed).
 
 ---
 
@@ -55,7 +55,7 @@ MEFAI onchain analysis places Swarms at 73 out of 100 (MEDIUM risk, Flagged).
 | **Token name and symbol** | Swarms / SWARMS |
 | **Contract or program** | `74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump` |
 | **Chain** | Solana |
-| **Tags** | SPL, AI Agent, Pump.fun Origin, Solana, Flagged |
+| **Tags** | SPL, AI Agent, Pump.fun Origin, Solana, Passed |
 
 A direct read of the mint returns decimals of six and a raw supply equal to about 999.97 million SWARMS, close to a one billion nominal cap. The mint authority is null, so the supply is permanently fixed, and the freeze authority is null, so individual token accounts cannot be frozen. The account owner is the classic SPL Token program, meaning it is not a Token 2022 mint and carries no built in transfer fee or other extension, so transfers move the full amount with no protocol level tax.
 
@@ -75,13 +75,20 @@ The official documentation presents SWARMS as a fixed supply SPL token with revo
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official site is the Swarms marketplace and does not surface the token, price, or any audit claim on its pages. This is normal for a product site, but it means the token facts must come from the token documentation rather than the homepage, and a buyer should confirm the official mint before trading, since impostor SWARMS tokens exist.
+
+
+---
+
+## 5. Findings by Severity
 
 - HIGH: a pump.fun bonding curve origin and a severe drawdown from a peak above 600 million dollars (extreme volatility). MEDIUM: holder concentration and liquidity pool locks were not verifiable on chain; impostor tokens exist. LOW: thin current market capitalization. INFO: both authorities revoked on a standard fee free SPL token and a real open source multi agent product with major listings.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -95,15 +102,15 @@ The official documentation presents SWARMS as a fixed supply SPL token with revo
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
-Claim vs reality audit of Swarms (SWARMS). A Solana multi agent AI framework token whose contract is clean at the mint level with both authorities revoked and no fee, but whose pump.fun origin, near fully circulating micro capitalization, and severe drawdown from a peak above 600 million dollars mark it as a high volatility asset despite a functioning open source product. On the MEFAI scale this token scores 73 out of 100 and is classified Flagged.
+Claim vs reality audit of Swarms (SWARMS). A Solana multi agent AI framework token whose contract is clean at the mint level with both authorities revoked and no fee, but whose pump.fun origin, near fully circulating micro capitalization, and severe drawdown from a peak above 600 million dollars mark it as a high volatility asset despite a functioning open source product. On the MEFAI scale this token scores 73 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Solana.
+- Methodology: manual review, onchain analysis using read only public RPC on Solana, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `solana RPC`

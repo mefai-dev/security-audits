@@ -11,7 +11,7 @@
 | **Contract / Program** | `native-oasis` |
 | **Chain** | Oasis |
 | **Audit Type** | Project + Token (Claim versus Reality) |
-| **Methodology** | Manual Review + Onchain Analysis (read only public RPC) |
+| **Methodology** | Manual Review + Onchain Analysis + Website Frontend Review |
 | **Mefai Security Score** | **67/100** |
 | **Overall Risk** | **LOW** |
 | **Verdict** | **Passed** |
@@ -77,13 +77,20 @@ Oasis presents itself as infrastructure for confidential compute and responsible
 
 ---
 
-## 4. Findings by Severity
+## 4. Website and Frontend Integrity
+
+The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+
+
+---
+
+## 5. Findings by Severity
 
 - MEDIUM: privacy depends on trusted execution hardware integrity rather than cryptography alone; historical insider concentration and backloaded emission overhang. LOW: modest liquidity; third party bridge custody risk on wrapped forms. INFO: a fixed 10 billion supply with no owner, no arbitrary mint, and no transfer fee (a strong positive) and shipping confidential compute products.
 
 ---
 
-## 5. Score Breakdown
+## 6. Score Breakdown
 
 | Dimension | Score |
 |-----------|-------|
@@ -97,15 +104,15 @@ Oasis presents itself as infrastructure for confidential compute and responsible
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
 Claim vs reality audit of Oasis Network (ROSE). A legitimate privacy focused Layer 1 with a fixed 10 billion native token, no owner key, no arbitrary mint, and no transfer fee, whose confidential compute and AI data products are real and shipping, but whose privacy relies on Intel trusted execution hardware rather than pure cryptography, and whose history includes a large insider allocation and a heavily backloaded emission. On the MEFAI scale this token scores 67 out of 100 and is classified Passed.
 
 ---
 
-## 7. Verification
+## 8. Verification
 
-- Methodology: manual review plus onchain analysis using read only public RPC on Oasis.
+- Methodology: manual review, onchain analysis using read only public RPC on Oasis, and a review of the project website frontend against its stated claims.
 - Onchain facts (supply, ownership, mint authority, upgradeability, pause, transfer fee) were read live from public nodes and cross checked against the project's public statements.
 - Sources:
   - `docs.oasis.io/token-metrics`
