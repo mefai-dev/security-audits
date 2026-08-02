@@ -79,7 +79,8 @@ Oasis presents itself as infrastructure for confidential compute and responsible
 
 ## 4. Website and Frontend Integrity
 
-The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+VERDICT: CLEAN | CONFIDENCE: high
+The official Oasis site is a static marketing brochure that resolves at oasis.net after a clean redirect from oasisprotocol.org to the foundation's own current domain, which is expected rebranding rather than any takeover. The frontend contains no wallet or contract addresses at all, so there is no target for a clipboard or address swap attack, and no drainer signatures, no obfuscated or remotely injected code, and none of the approval, permit, or transaction signing calls a wallet drainer would need were found. The only crypto touch point is an optional helper that offers to add the Sapphire network to MetaMask, which is a read only network configuration prompt that cannot move or approve any funds. Every third party script loads from a canonical trusted host such as the analytics provider, the animation library, the form provider, Cloudflare Turnstile, and the site builder network, and the page shows no live metrics dashboards or unbacked audit badges that could mislead visitors. What the marketing says and what the code does line up cleanly, so from a website and frontend integrity standpoint this reads as safe for end users.
 
 
 ---

@@ -78,7 +78,8 @@ Exchange facing marketing presents CXT as a fixed one billion supply with no inf
 
 ## 4. Website and Frontend Integrity
 
-The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+VERDICT: CLEAN | CONFIDENCE: high
+Covalent's live frontend is clean from a user protection standpoint. Its code references the correct official CXT contract 0x7ABc8A5768E6bE61A6c693a6e4EAcb5B60602C4D and only that one, with no trace anywhere of the deprecated CQT contract or any lookalike, so there is nothing steering visitors toward the old token. The page is a read only marketing and data site with no wallet connection, no signing, and no approval or transfer logic, which means there is no drainer surface at all, and there is no eval, no obfuscation, and no remote script beyond the analytics loader and Covalent's own domains. Live figures come from the official Covalent API endpoints rather than being faked, and the audit reference is a genuine link to Covalent's own documentation instead of an unbacked badge. The only thing worth a second look is that the site's canonical social handle is listed as a non standard account rather than the expected official Covalent account, a minor identity note that does not put user funds at risk.
 
 
 ---

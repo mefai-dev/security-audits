@@ -77,7 +77,8 @@ The project describes CTXC as the native asset of its own public chain, and inde
 
 ## 4. Website and Frontend Integrity
 
-The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+VERDICT: CLEAN | CONFIDENCE: high
+The Cortex homepage is a static marketing site built entirely on a page builder and it carries no wallet integration whatsoever, meaning there is no connect button, no signing prompt, no token approval or transfer code, and no address that a user could be tricked into funding. Every script loads from the builder CDN plus Google Fonts, none of it obfuscated and none pointing to a crypto or unknown host, and the small custom page bundle contains no addresses, no eval, and no base64 payloads. The deprecated Ethereum mirror address never appears on the page, which removes any lookalike or wrong destination risk, though it also means the homepage offers no explicit do not send to mainnet warning because it simply does not deal with the token. There are no fabricated audit badges and no live or hardcoded market metrics to misrepresent, and all outbound links resolve to genuine Cortex Foundation resources such as the GitHub org, the explorer, and official social accounts. The only hygiene notes are that one link points to an unencrypted plain HTTP forum on a raw IP address and that the whole site depends on a third party website builder, neither of which endangers visitor funds, so the frontend reads as clean and low risk for end users.
 
 
 ---

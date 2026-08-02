@@ -77,7 +77,8 @@ The official blog publishes a five billion maximum supply and a four year vestin
 
 ## 4. Website and Frontend Integrity
 
-The official site is reachable and references audits, so confirm that any audit claim links to a real auditor. The token address is not printed in the static page, so confirm the official SXT address from the docs before interacting.
+VERDICT: CLEAN | CONFIDENCE: high
+The public Space and Time homepage is a static marketing page that behaves exactly as its marketing claims, with no wallet connection, no signature prompts, and no token contract address embedded anywhere in the HTML or JavaScript, so there is no lookalike or address swap risk on this page and nothing that resembles a drainer. Every script it loads comes from expected sources such as the site builder CDN, fonts and tag manager, a cookie consent library, and two small animation and carousel helpers the team hosts, and all of them are free of eval, base64, obfuscation, or any web3 approval and transfer calls. The site names four real security firms under an audited by heading, namely Hashlock, Spearbit, Pashov, and Cantina, though the logos are display images only and are not linked to the underlying reports, so a visitor cannot one click verify the audits from the homepage itself. The only mild hygiene observations are that two production helper scripts are served from third party sandbox and app hosts rather than first party hosting, which are fine today but weaker to control for a security focused project. Actual wallet interactions would happen on the separate staking and chain subdomains, which were outside this homepage review.
 
 
 ---

@@ -77,7 +77,8 @@ The official documentation presents SWARMS as a fixed supply SPL token with revo
 
 ## 4. Website and Frontend Integrity
 
-The official site is the Swarms marketplace and does not surface the token, price, or any audit claim on its pages. This is normal for a product site, but it means the token facts must come from the token documentation rather than the homepage, and a buyer should confirm the official mint before trading, since impostor SWARMS tokens exist.
+VERDICT: CLEAN (inspectable surfaces) | CONFIDENCE: med (main marketplace behind a bot challenge)
+The reachable official Swarms frontends are clean and behave exactly as advertised. Every token reference on the official investor and analytics frontends points to the correct official Solana mint 74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump, including the buy button and the chart link, and the only other address shown is the documented DAO treasury, so there is no sign of an impostor address swap. The pages load no untrusted third party scripts, expose no wallet connect or transaction signing code, and contain no drainer patterns, obfuscation, eval, or base64 payloads, while headline metrics are genuinely live from an internal price API rather than hardcoded. The one thing worth flagging for users is not a code exploit but a design choice, namely that DAO participation is described as manually sending tokens to the treasury address with no visible on chain escrow, which is a general caution for any send to address scheme even when the address is legitimate. The main marketplace homepage itself sat behind a bot challenge that could not be rendered from this network, so that specific page should be re verified from a clean network before a final all clear on the main domain.
 
 
 ---

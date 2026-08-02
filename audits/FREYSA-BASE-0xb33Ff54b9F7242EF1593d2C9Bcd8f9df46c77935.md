@@ -78,7 +78,8 @@ The public claims of a fixed 8,189,700,000 supply, one token per living human at
 
 ## 4. Website and Frontend Integrity
 
-The official website was reviewed and is reachable. It presents as a standard project site with no unbacked audit or certification badges detected in the page. The token contract address is not printed in the static page and loads dynamically, so a visitor should always confirm the official contract address from the project documentation before connecting a wallet or trading.
+VERDICT: CLEAN | CONFIDENCE: high
+The Freysa homepage is a self contained informational single page app with no wallet connectivity whatsoever, which removes the entire drainer and approval attack surface. The only token address shown is the official FAI contract 0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935, and the copy to clipboard button verifiably copies that same official value rather than a swapped one. A second address appears solely as disclosed text for the project treasury multisig, which is expected and not a red flag. There is no obfuscated code, no third party runtime scripts, and no unbacked audit badges. The public marketing narrative lines up cleanly with what the shipped JavaScript actually does. The one gap is that sibling app subdomains were out of scope and could host separate wallet flows not reviewed here.
 
 
 ---
