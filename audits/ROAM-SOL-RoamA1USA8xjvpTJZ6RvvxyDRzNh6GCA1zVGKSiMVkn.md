@@ -29,7 +29,7 @@ Roam is a genuine wireless DePIN project with a real, actively used mobile app, 
 
 1. **The product is real and used.** The Roam app, formerly MetaBlox, is live on both the Apple App Store and Google Play under developer MetaBlox Labs Inc, carries strong ratings (4.7 on iOS across roughly 167 ratings, 4.78 on Android across around ten thousand ratings), and shows real download volume on Android on the order of 1.3 million lifetime installs. There is a working WiFi and eSIM product tied to OpenRoaming and a live node explorer. This is credited.
 
-2. **The headline traction is marketing, not a live feed.** MEFAI's frontend review found that the site's showcase numbers, more than 100,000 users, over 127,000 downloads, and more than 3.7 billion data records, are hardcoded static values baked into the page HTML rather than an audited real time data source. Notably the static 127,000 downloads figure sits well below the roughly 1.3 million installs the Android store itself reports, which confirms these are stale marketing figures rather than a live metric.
+2. **The headline traction is marketing, not a live feed.** MEFAI's frontend review found that the site's showcase numbers, more than 100,000 users, over 127,000 measurement devices, and more than 3.7 billion data records, are hardcoded static values baked into the page HTML rather than an audited real time data source. The 127,000 figure refers to devices in the connectivity measurement network per the project litepaper, a different metric from the roughly 1.3 million app installs, so these are static litepaper marketing figures rather than a live audited feed.
 
 3. **The token utility is confined to the app.** ROAM is a reward token: users earn Roam Points through daily check ins, adding hotspots, and referrals, and those points burn into ROAM that can be staked and used for governance. That utility is real but it lives inside the Roam application. Beyond exchange trading, there is no independent onchain utility, so for most holders ROAM is a rewards and speculative asset rather than the medium of a broad ecosystem.
 
@@ -81,11 +81,11 @@ MEFAI's direct Solana RPC read of the ROAM mint returned:
 
 ---
 
-## 4. Claim vs Reality: "100,000 plus users, 127,000 plus downloads, 3.7 billion plus data records"
+## 4. Claim vs Reality: "100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records"
 
 > Site: the Roam marketing page presents these headline metrics as evidence of live traction.
 
-**Reality: static marketing numbers, not a live audited feed.** MEFAI's frontend review found that these figures are hardcoded into the page HTML rather than served from a live or audited data source. The tell is internal: the site advertises more than 127,000 downloads while the Android store alone reports roughly 1.3 million installs, so the headline number is not just static, it is stale by an order of magnitude. Presenting fixed values styled as real time traction is normal for a brochure page but is a transparency concern when the numbers are read as a live dashboard. The underlying product does have real users, but these specific on page metrics should be treated as marketing rather than measured traction.
+**Reality: static marketing numbers, not a live audited feed.** MEFAI's frontend review found that these figures are hardcoded into the page HTML rather than served from a live or audited data source. The 127,000 figure is the project litepaper count of devices in the connectivity measurement network, a different metric from the roughly 1.3 million app installs the Android store reports, so it should be read as a static marketing figure rather than a live download counter. Presenting fixed values styled as real time traction is normal for a brochure page but is a transparency concern when the numbers are read as a live dashboard. The underlying product does have real users, but these specific on page metrics should be treated as marketing rather than measured traction.
 
 ---
 
@@ -128,7 +128,7 @@ MEFAI's direct Solana RPC read of the ROAM mint returned:
 |----|----------|---------|
 | ROAM 001 | **HIGH** | Mint and freeze authorities are both active and not renounced. The issuer can mint additional supply and can freeze any individual holder account. |
 | ROAM 002 | **MEDIUM** | The one billion max supply is a policy statement, not an enforced onchain hard cap; about 99.6 percent is already minted and the ceiling depends on issuer discretion. |
-| ROAM 003 | **MEDIUM** | Headline traction (100,000 plus users, 127,000 plus downloads, 3.7 billion plus data records) is hardcoded static HTML, not a live feed; the download figure is stale versus the roughly 1.3 million Android installs. |
+| ROAM 003 | **MEDIUM** | Headline traction (100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records) is hardcoded static HTML from the project litepaper, not a live feed. |
 | ROAM 004 | **LOW** | ROAM utility is confined to the app (points burn into ROAM, staking, governance); beyond trading there is no independent onchain utility, so value is largely rewards and speculative. |
 | ROAM 005 | **LOW** | ROAM is also bridged to BNB Chain, adding a cross chain supply and bridge trust surface beyond the Solana mint. |
 | ROAM 006 | **INFO** | Classic SPL token, no transfer fee, no transfer hook, no Token 2022 extensions (positive). |
@@ -144,7 +144,7 @@ MEFAI's direct Solana RPC read of the ROAM mint returned:
 | Supply / minting | High risk | Mint authority active, cap is policy only, about 99.6 percent already minted |
 | Holder control | High risk | Freeze authority active; issuer can freeze individual accounts |
 | Product reality | Low risk | Real, maintained, well rated app with substantial installs |
-| Traction | Medium risk | Real usage exists, but on site headline metrics are static and stale |
+| Traction | Medium risk | Real usage exists, but on site headline metrics are static litepaper figures |
 | Utility | Medium risk | Genuine in app reward utility, but no independent onchain utility |
 | Transparency | Medium risk | Static numbers styled as live traction; unrenounced authorities not disclosed behind a published multisig |
 
@@ -171,7 +171,7 @@ MEFAI's direct Solana RPC read of the ROAM mint returned:
 
 ## 12. Conclusion
 
-Roam is one of the more legitimate DePIN projects MEFAI has reviewed, because the product is real. There is a working WiFi and eSIM app on both stores, it is maintained, it is well rated, and it has genuine users and installs. That earns real credit and keeps the overall risk at medium rather than high. As a claim versus reality audit, though, three things pull the score down. The traction the marketing site puts forward is hardcoded and stale rather than a live feed, the token's utility is confined to the app so most holders are exposed to a rewards and speculative asset, and the Solana mint still carries active mint and freeze authorities that let the issuer expand supply past the advertised cap and freeze individual holders. None of these is a scam signal, but together they describe a real product wrapped in overstated on page metrics and a token that is not yet locked down or independently useful. This lands Roam at 50 out of 100, Flagged.
+Roam is one of the more legitimate DePIN projects MEFAI has reviewed, because the product is real. There is a working WiFi and eSIM app on both stores, it is maintained, it is well rated, and it has genuine users and installs. That earns real credit and keeps the overall risk at medium rather than high. As a claim versus reality audit, though, three things pull the score down. The traction the marketing site puts forward is hardcoded litepaper figures rather than a live feed, the token's utility is confined to the app so most holders are exposed to a rewards and speculative asset, and the Solana mint still carries active mint and freeze authorities that let the issuer expand supply past the advertised cap and freeze individual holders. None of these is a scam signal, but together they describe a real product wrapped in overstated on page metrics and a token that is not yet locked down or independently useful. This lands Roam at 50 out of 100, Flagged.
 
 ---
 
@@ -184,7 +184,7 @@ Roam is one of the more legitimate DePIN projects MEFAI has reviewed, because th
 - Broaden ROAM's utility beyond the app, or stop implying the token powers a wider ecosystem than the rewards program it currently serves.
 
 **For users:**
-- Treat the on site headline numbers as marketing; the underlying app is real, but those specific metrics are static and in at least one case stale.
+- Treat the on site headline numbers as marketing; the underlying app is real, but those specific metrics are static litepaper figures rather than a live feed.
 - Understand that ROAM supply is not cryptographically fixed and that the issuer can freeze individual accounts, since both authorities remain active.
 - Recognize that ROAM's real utility today is inside the Roam app as a reward and governance token; outside the app and exchanges it is largely a speculative holding.
 
@@ -194,5 +194,5 @@ Roam is one of the more legitimate DePIN projects MEFAI has reviewed, because th
 
 - MEFAI onchain analysis: a direct Solana RPC read of the ROAM mint confirming the mint address, 6 decimals, classic SPL Token program with no extensions, no transfer fee, no transfer hook, total minted about 995.63 million, and both mint authority `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` and freeze authority `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1` still active. Address cross checked against CoinGecko, Solana Compass, CoinCarp, and multiple exchange listings.
 - Product checks: live confirmation of the Roam app on the Apple App Store (Roam: Global eSIM & WiFi, developer MetaBlox Labs Inc, about 4.7 rating) and Google Play (com.dapp.metablox, about 4.78 rating, roughly 1.3 million installs), plus the existence of a live node explorer and OpenRoaming based connectivity.
-- Frontend review: MEFAI integrity review of www.roam.network finding a conventional marketing and download page with no web3 or wallet connect surface, and headline metrics (100,000 plus users, 127,000 plus downloads, 3.7 billion plus data records) hardcoded as static HTML rather than a live data source.
+- Frontend review: MEFAI integrity review of www.roam.network finding a conventional marketing and download page with no web3 or wallet connect surface, and headline metrics (100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records) hardcoded as static HTML rather than a live data source.
 - Project statements: the project's website and documentation (formerly MetaBlox, one billion policy cap, allocation and vesting plan, emission curve, and Roam Points burning into ROAM with staking and governance).
