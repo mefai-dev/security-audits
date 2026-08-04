@@ -11,7 +11,7 @@
 | **Contract (Base)** | `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935` |
 | **Chain** | Base (ERC 20) |
 | **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **70/100** |
+| **Mefai Security Score** | **65/100** |
 | **Overall Risk** | **LOW to MEDIUM** |
 | **Verdict** | **Passed** |
 
@@ -35,7 +35,7 @@ Freysa is one of the rare AI agent tokens where the product is genuinely real an
 
 4. **The weakness is token utility.** The game's message fees are paid in Base ETH, not in FAI. FAI is instead earned as a reward, since a portion of each fee is routed into buying FAI for players, and its governance role remains a roadmap item rather than a confirmed live system. Stated utilities such as access, payment for services, agent operations, and governance are mostly forward looking. Demand is episodic and tied to story beats, so the token today is driven far more by narrative and speculation than by durable, required usage.
 
-The result is a project that is safe at the contract and frontend level, real and active at the product level, but thin at the token utility level. This lands Freysa at 70 out of 100, Passed, with the clear caveat that FAI is a highly volatile narrative asset.
+The result is a project that is safe at the contract and frontend level, real and active at the product level, but thin at the token utility level. This lands Freysa at 65 out of 100, Passed, with the clear caveat that FAI is a highly volatile narrative asset.
 
 ---
 
@@ -157,7 +157,7 @@ MEFAI's direct read of the FAI contract on Base returned:
 
 ## 11. Conclusion
 
-Freysa is the uncommon case of an AI agent token where the product is real, the contract is clean, and the frontend is safe, yet the token utility is honestly thin. The adversarial agent game genuinely exists, was genuinely solved, and has continued through multiple public Acts with real prize pools and a reported 30 million dollar raise led in part by Coinbase Ventures, which puts it far ahead of projects whose flagship experience is broken or missing. The FAI contract is immutable, ownerless, fixed in supply, not upgradeable, not pausable, and free of transfer taxes, and the informational single page app carries no drainer surface and discloses its official contract and treasury multisig correctly. What holds the score back is that FAI is not the currency of its own headline game, which is paid in ETH, and that its governance and payment utility remain a roadmap rather than a confirmed live system, so the token's value today is narrative and speculation. Weighing a strong, real product and a best case contract against thin, aspirational utility and high market risk, Freysa scores 70 out of 100 and is Passed, with the clear caveat that it is a highly volatile asset.
+Freysa is the uncommon case of an AI agent token where the product is real, the contract is clean, and the frontend is safe, yet the token utility is honestly thin. The adversarial agent game genuinely exists, was genuinely solved, and has continued through multiple public Acts with real prize pools and a reported 30 million dollar raise led in part by Coinbase Ventures, which puts it far ahead of projects whose flagship experience is broken or missing. The FAI contract is immutable, ownerless, fixed in supply, not upgradeable, not pausable, and free of transfer taxes, and the informational single page app carries no drainer surface and discloses its official contract and treasury multisig correctly. What holds the score back is that FAI is not the currency of its own headline game, which is paid in ETH, and that its governance and payment utility remain a roadmap rather than a confirmed live system, so the token's value today is narrative and speculation. Weighing a strong, real product and a best case contract against thin, aspirational utility and high market risk, Freysa scores 65 out of 100 and is Passed, with the clear caveat that it is a highly volatile asset.
 
 ---
 
