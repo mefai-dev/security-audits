@@ -1,198 +1,344 @@
-# Security Audit Report: Space and Time (SXT) on Ethereum
+# Space and Time (SXT): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 80/100, LOW to MEDIUM RISK**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | Space and Time |
-| **Token Symbol** | SXT |
-| **Contract (Ethereum)** | `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195` |
-| **Chain** | Ethereum ERC 20 (canonical), with a mirror on Base at `0xa2c22252cdc8b7cddee1b0b2e242818509fcf7b8`; SXT also secures and pays gas on the SXT Chain |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **74/100** |
-| **Overall Risk** | **LOW** |
-| **Verdict** | **Passed** |
+**Date:** 2026-08-05
+**Token:** SXT (ERC20, Ethereum mainnet `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195`, fixed 5,000,000,000 supply, 18 decimals, non mintable, pausable)
+**Chain:** SXT Chain (Substrate / polkadot-sdk, BABE + GRANDPA + NPoS staking)
+**Websites:** spaceandtime.io, docs.spaceandtime.io
+**GitHub:** github.com/spaceandtimefdn (sxt-proof-of-sql, sxt-node, sxt-token, sxt-node-op-contracts, blitzar, sxt-dory)
 
 ---
 
-## Disclaimer
-
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis with read only public RPC. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
-
----
-
-## Executive Summary
-
-Space and Time markets itself as a verifiable data blockchain for apps and AI, and unlike many projects with an AI narrative, most of what it sells is actually shipped and inspectable. The token contract is a clean, fixed supply ERC 20, the flagship technology is real and open source, and the token has genuine designed utility on a live chain. The rating is held below the top band by real control and maturity considerations, not by any legitimacy gap.
-
-1. **The flagship product is real and usable.** Proof of SQL, the zero knowledge prover that lets a smart contract or an application verify a SQL query ran correctly over committed data, is open source in Rust under the DOSL 1.0 license, actively developed with thousands of commits and published benchmarks, and SXT Chain is live on mainnet. This is a working product, not a promise.
-2. **The token has genuine, designed utility.** SXT is staked by validators and delegators to secure the chain, and queries and data inserts are paid in SXT denominated gas, with fees routed to validators and provers. Utility is built into the protocol rather than bolted onto marketing.
-3. **Supply is genuinely fixed on chain.** A direct read confirms exactly five billion tokens, eighteen decimals, no mint function, a non proxy deployment, and no transfer fee, and the blog address, the RPC identity and the aggregator listing agree across three independent confirmations.
-4. **The cautions are control and maturity, not legitimacy.** An active pauser and admin role can halt transfers and are not renounced, a large team and investor unlock schedule overhangs supply across four years, the token and chain are young (mainnet and token launched in May 2025) so traction is real but early, and the site names four audit firms without linking their reports.
-
-The contract is clean and the product is real. This lands Space and Time at 74 out of 100, LOW risk, Passed.
-
-### Risk Rating
+## Severity Summary
 
 | Severity | Count |
 |----------|-------|
 | Critical | 0 |
 | High | 0 |
-| Medium | 1 |
+| Medium | 3 |
 | Low | 3 |
-| Informational | 2 |
-| **Total** | **6** |
+| Informational | 3 |
 
 ---
 
-## 1. Token Overview
+## Why This Report Exists
 
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | Space and Time / SXT |
-| **Contract (Ethereum)** | `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195` |
-| **Decimals** | 18 |
-| **Total and max supply** | 5,000,000,000 SXT, minted in full at genesis; no mint function, so supply is fixed |
-| **Circulating** | Roughly 2.6 billion SXT, about 52 percent of max (approximately 28 percent entered circulation at mainnet launch) |
-| **Allocation** | Community Rewards 28.0 percent, Investors 25.9 percent, Ecosystem 23.7 percent, Team 22.4 percent; team and investor tranches on a four year linear vest with a 15 percent cliff at month twelve |
-| **Contract controls** | No Ownable; role based AccessControl with DEFAULT_ADMIN_ROLE and PAUSER_ROLE present and not renounced; non upgradeable; standard OpenZeppelin ERC 20 with Permit and Votes extensions |
+Most of the reports we publish document projects whose code contradicts their marketing. Space and Time is the other kind of subject: a project that has shipped a large body of genuine, sophisticated cryptography in the open. The discipline is the same. We read the actual public source, claim by claim, credit what is truly implemented, and flag where the marketing language runs ahead of the code or where the trust model is more centralized than the words "decentralized" and "trustless" imply.
+
+We are not making accusations. We are not spreading FUD. We read the source and show what is actually implemented. Space and Time earns real credit here: Proof of SQL is a genuine, high quality zero knowledge argument system with a sound prover and verifier, the SXT Chain is a real Substrate chain with genuine BFT consensus and staking, and the SXT token is a genuine fixed supply asset that we verified live on chain. The caveats that remain are honest ones about maturity and centralization, and they matter for anyone who reads "decentralized verifiable database" literally.
+
+## Method
+
+For every major claim we located the relevant code in the real repositories (sxt-proof-of-sql, sxt-node, sxt-token, sxt-node-op-contracts), fetched raw files from GitHub, and read what is actually implemented. We additionally verified the token live on Ethereum mainnet with `eth_call`. Each claim is labelled CONFIRMED IN CODE, OVERSTATED, or FALSE, with a repository path, file, line, and a short verbatim snippet.
 
 ---
 
-## 2. Onchain Security Assessment (MEFAI analysis)
+## The Foundation: A Genuine Open Source Cryptography Stack, Recently Launched
 
-MEFAI's direct read of the SXT contract on Ethereum returned:
+**CLAIM:**
+> Space and Time is building a decentralized, verifiable data warehouse powered by an original zero knowledge prover.
 
-| Check | Result |
-|-------|--------|
-| Token identity | Space and Time, SXT, 18 decimals, verified |
-| Total supply | 5,000,000,000, minted at genesis, matches the published tokenomics |
-| Mint authority | **None**, there is no mint selector, so supply cannot be inflated |
-| Pause authority | Present, held via PAUSER_ROLE; paused currently returns false |
-| Admin authority | DEFAULT_ADMIN_ROLE present and not renounced |
-| Upgradeable | No, the EIP 1967 proxy slots are empty and the implementation is direct |
-| Transfer fee | None |
-| Extensions | ERC 20 Permit (EIP 2612) for gasless approvals and ERC20Votes for governance delegation |
+**REALITY:** CONFIRMED, with a maturity caveat. Unlike the rebranded forks we usually review, the core of Space and Time is real, original, and substantial. The Proof of SQL prover (`sxt-proof-of-sql`, ~5,400 stars) is a large Rust codebase implementing a full ZK argument system from primitives up: a sumcheck protocol, the Dory transparent polynomial commitment scheme, a HyperKZG commitment scheme, inner product arguments, and Keccak256 Fiat Shamir transcripts. GPU acceleration lives in a separate C++ library (`blitzar`). The chain (`sxt-node`) is a real polkadot-sdk runtime. The honest caveat is age: the token, chain, and staking contracts were all first published on 2025-04-29 and the network runs `mainnet-v1.33.x`, so this is an early stage deployment, not a battle tested one.
 
-**Interpretation.** At the contract level SXT is strong. It is a fixed supply, non upgradeable, fee free ERC 20 with no mint function, so circulating supply cannot be inflated and transfers are untaxed. The residual contract risk is control centralization rather than dilution, because the token is Pausable and a privileged role holder could halt transfers, and the admin and pauser roles are active rather than renounced. The AccessControl mapping is non enumerable, so the exact role holder addresses are not listable over RPC. This is a caution to disclose, not a red flag on its own, and the more meaningful part of the story is at the product level below, which for this project is genuinely positive.
+**EVIDENCE:**
+```
+sxt-proof-of-sql/crates/proof-of-sql/src/proof_primitive/
+  sumcheck/proof.rs, dory/*.rs, hyperkzg/*.rs, inner_product/inner_product_proof.rs
+sxt-node/Cargo.toml  -> polkadot-sdk = "0.9.0", 25+ workspace crates incl. pallets/{staking-via-runtime,rewards,zkpay,permissions,commitments,tables}
+sxt-token created 2025-04-29 ; sxt-node mainnet image ghcr.io/spaceandtimefdn/sxt-node:mainnet-v1.33.1
+```
 
----
-
-## 3. Claim vs Reality: "Verifiable database secured by Proof of SQL and zero knowledge proofs"
-
-> Site: Space and Time is positioned as a decentralized replacement for a blockchain indexing service, database and API layer, with a verifiable onchain database that secures offchain data using zero knowledge proofs and lets smart contracts execute ZK proven SQL.
-
-**Reality: the technology is real, open source and usable.** The core innovation, Proof of SQL, is a high performance zero knowledge prover that cryptographically attests a SQL query was computed correctly against a tamper evident, committed data state. It is published openly on GitHub at `spaceandtimefdn/sxt-proof-of-sql`, written in Rust under the Decentralized Open Software License 1.0, with thousands of commits, several thousand stars and hundreds of forks, indicating sustained active development rather than a one time drop. The team has published reproducible benchmarks (on the order of one million rows proven in roughly one second on GPU accelerated hardware), and the prover is downloadable and runnable by anyone. SXT Chain is live on mainnet, and the Chain App at chain.spaceandtime.io and the Data Studio are the user facing interfaces. This is one of the stronger claim to reality matches in the sector: the flagship is a working, inspectable product, not aspirational branding.
+**IMPACT:** Positive, with a time caveat. The foundation is genuine engineering, not a cosmetic fork. Treat every confirmation below as real, and every centralization caveat as the normal profile of a young network still under a founding operator. Informational.
 
 ---
 
-## 4. Claim vs Reality: "Live on mainnet, and SXT powers queries and staking"
+## Claim 1: Proof of SQL cryptographically guarantees SQL query results (real prover and verifier)
 
-> Site: Space and Time is described as live on mainnet and ready for production, with SXT presented as the token you stake to secure the network and earn rewards.
+**CLAIM:**
+> "Proof of SQL cryptographically guarantees SQL queries were computed accurately against untampered data." A sub second ZK prover with both onchain and offchain verification.
 
-**Reality: genuine designed utility, on a young network still building traction.** The token utility is real and built into the protocol. Validators must stake SXT to join consensus, witness index commitments and verify Proof of SQL results, with slashing for signing invalid commitments or going offline, and holders can delegate SXT to validators to share rewards. Queries and data inserts are paid in SXT denominated gas, and those fees are distributed to validators and provers, so SXT is the settlement asset of its own product rather than a decoupled ticker. The honest qualifier is maturity. Mainnet and the token generation event took place in May 2025, so at review the network is young: the validator set and staking participation were still bootstrapping, base staking rewards were described as ramping toward roughly eight percent while an early Genesis Validator Rewards program offered elevated incentives to attract operators. Adoption is real but early, and the token price is correspondingly speculative. The utility exists today; the scale of paid usage is still growing into the design.
+**REALITY:** CONFIRMED IN CODE. The prover and verifier are both fully implemented and cryptographically coherent. `QueryProof::new` builds a two round protocol: it commits to intermediate multilinear extensions (MLEs), binds everything into a Keccak256 Fiat Shamir transcript, runs a sumcheck over the query constraint subpolynomials, and produces a polynomial commitment evaluation proof. `QueryProof::verify` independently rebuilds the identical transcript, verifies the sumcheck, checks the result MLE evaluations, checks the sumcheck evaluation, and finally verifies the batched commitment evaluation proof, returning a hard `VerificationError` on any mismatch. This is a genuine succinct argument, not a stub.
 
----
+**EVIDENCE:**
+```rust
+// sxt-proof-of-sql/crates/proof-of-sql/src/sql/proof/query_proof.rs:152-233  prove
+let mut transcript: Keccak256Transcript = Transcript::new();
+...
+let state = make_sumcheck_prover_state(final_round_builder.sumcheck_subpolynomials(), ...);
+// L305: let evaluation_proof = CP::new(&mut transcript, &folded_mle, &evaluation_point, ...);
+```
+```rust
+// query_proof.rs:327 verify(...) ; the checks are enforced, not decorative:
+// L425:  let subclaim = self.sumcheck_proof.verify_without_evaluation(&mut transcript, ...)?;
+// L507:  if verifier_evaluations.column_evals() != result_evaluations { Err("result evaluation check failed") }
+// L516:  if builder.sumcheck_evaluation() != subclaim.expected_evaluation { Err("sumcheck evaluation check failed") }
+// L532:  self.evaluation_proof.verify_batched_proof(...).map_err(|_e| "Inner product proof of MLE evaluations failed")?;
+```
+The commitment layer is real and transparent (no trusted setup for the default Dory scheme):
+```
+proof_primitive/dory/dory_commitment_evaluation_proof.rs, setup.rs, public_parameters.rs
+proof_primitive/sumcheck/proof.rs (prover_round.rs, prover_state.rs)
+```
 
-## 5. Claim vs Reality: "Backed by Chainlink, Microsoft and NVIDIA and integrated across chains"
-
-> Site: Space and Time displays a roster of partners and integrations, including Chainlink, Microsoft, NVIDIA, Circle, Avalanche, Stellar, zkSync and US Bank, as evidence of traction.
-
-**Reality: the headline relationships are substantiated, a few are ecosystem breadth.** The most load bearing claims hold up. The Space and Time verifier runs natively on Chainlink nodes so that proof validity can be brought to consensus, which is a concrete, technical integration rather than a logo. Microsoft is a genuine backer and the project raised a 20 million Series A, NVIDIA is a real hardware and performance partner behind the GPU accelerated prover, and there is a working Google BigQuery integration. Some of the wider names read more as ecosystem membership or exploration than deep shipped integrations, which is normal for a young network. On balance the partnership story is better supported than the sector average and is not the kind of intent framed as delivery that would warrant a flag.
-
----
-
-## 6. Claim vs Reality: "Audited by Hashlock, Spearbit, Pashov and Cantina" and fixed supply controls
-
-> Site: an Audited by section names Hashlock, Spearbit, Pashov and Cantina, and the tokenomics promise a fixed five billion supply.
-
-**Reality: the auditors are real firms but the reports are not one click verifiable, and the fixed supply checks out with one nuance.** Hashlock, Spearbit, Pashov and Cantina are all established security firms, so the names are credible, but on the homepage the logos are display images only and are not linked to the underlying reports, so a visitor cannot verify the audits directly from the page. Separately, MEFAI's frontend review found the homepage clean: it is a static marketing page with no wallet connection, no signature prompts and no token address embedded in the HTML or JavaScript, so there is no lookalike or address swap risk and nothing resembling a drainer, and every loaded script is free of eval, obfuscation or web3 approval and transfer calls. The only mild hygiene note is that two production helper scripts are served from third party sandbox and app hosts rather than first party hosting. On supply, the fixed five billion claim is confirmed precisely on chain with no mint function, and the blog address matches both the RPC identity and the aggregator listing across three independent confirmations. The one thing the marketing underplays is that transfers can be paused and the admin roles remain in place, so the token is not immutable or fully decentralized in its controls, and a large team and investor tranche is still vesting.
-
----
-
-## 7. Positive Findings (Credited)
-
-- The flagship, Proof of SQL, is a real, open source, actively developed zero knowledge prover with published benchmarks, and SXT Chain is live on mainnet.
-- The token contract is a clean, fixed supply, non upgradeable ERC 20 with no mint function and no transfer fee, verified across three independent address confirmations.
-- SXT has genuine protocol level utility as the staking asset for validators and delegators and as the gas paid for queries and data inserts.
-- The named headline relationships, especially the native Chainlink integration and Microsoft backing, are substantiated rather than decorative.
-- The public homepage is clean, with no wallet hooks, no embedded address and no drainer behavior.
+**IMPACT:** Positive. This is the single strongest confirmation in the report. The flagship claim, that Proof of SQL produces a real cryptographic proof that a SQL result was computed correctly against committed data, is genuinely implemented and the verifier genuinely rejects bad proofs. Informational.
 
 ---
 
-## 8. Findings by Severity
+## Claim 2: The proofs are "zero knowledge"
 
-| ID | Severity | Finding |
-|----|----------|---------|
-| SXT 001 | **MEDIUM** | Active control roles: DEFAULT_ADMIN_ROLE and PAUSER_ROLE are present and not renounced, so a role holder can pause transfers and manage roles; the token is currently unpaused and the role holders are not enumerable on chain. |
-| SXT 002 | **LOW** | Supply overhang: team (22.4 percent) and investor (25.9 percent) allocations vest over four years with recurring 2026 unlocks, against roughly 52 percent circulating. |
-| SXT 003 | **LOW** | Early maturity: mainnet and the token launched in May 2025, the validator set and staking participation were still bootstrapping at review, so traction is real but early and the token is speculative. |
-| SXT 004 | **LOW** | Transparency and hygiene: the Audited by logos (Hashlock, Spearbit, Pashov, Cantina) are not linked to reports, and two production helper scripts are served from third party sandbox and app hosts. |
-| SXT 005 | **INFO** | Fixed five billion supply with no mint function on a non proxy, fee free contract (a strong positive). |
-| SXT 006 | **INFO** | Real, open source flagship (Proof of SQL) with genuine SXT staking and query fee utility, a native Chainlink integration and Microsoft backing (positive). |
+**CLAIM:**
+> Proof of SQL is a "zero knowledge (ZK) prover." The ZK branding implies the data is kept private.
 
----
+**REALITY:** OVERSTATED (as a privacy claim). The system is a succinct, verifiable computation argument. Its guarantee is soundness and integrity: the query was executed correctly against the data that was committed. It is not a confidentiality technology in the everyday sense of "zero knowledge equals your data stays hidden." The column commitments the verifier consumes are public on chain state, and the query result is revealed in cleartext to the verifier (the verifier is handed `result: OwnedTable` and checks it). The default Dory path and the examples do not blind the underlying table from a party that holds the commitments and result. "ZK" here is accurate in the academic sense of a succinct argument built on commitments and Fiat Shamir, but it should not be read as "the prover hides the data."
 
-## 9. Risk Matrix
+**EVIDENCE:**
+```rust
+// query_proof.rs:327-333  the verifier is given the plaintext result and the public commitments
+pub fn verify(self, expr, accessor: &impl CommitmentAccessor<CP::Commitment>,
+              result: OwnedTable<CP::Scalar>, setup, params) -> QueryResult<CP::Scalar>
+// L505: let result_evaluations = result.mle_evaluations(&subclaim.evaluation_point);
+```
+```
+// README: "cryptographically guarantees SQL queries were computed accurately" -> integrity, not privacy
+// commitments are stored as public on chain state (sxt-node/pallets/commitments)
+```
 
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified, fixed five billion supply, no mint, no transfer fee |
-| Supply / minting | Low risk | No mint function; supply fixed at genesis (vesting overhang is a market factor, not inflation) |
-| Control / centralization | Medium risk | Active, unrenounced admin and pauser roles can halt transfers and manage roles |
-| Product reality | Low risk | Open source, benchmarked prover; SXT Chain live on mainnet |
-| Traction / maturity | Medium risk | Young token and chain, validator set and staking still bootstrapping, speculative |
-| Transparency | Low to medium risk | Strong onchain verifiability; audit logos not linked to reports |
+**IMPACT:** The property delivered is verifiable correctness (you can trust an untrusted operator computed the query honestly), which is exactly what the DeFi and smart contract use cases need. It is not input privacy. Readers should take "ZK" as "provably correct," not "confidential." Low.
 
 ---
 
-## 10. Technical Specifications
+## Claim 3: SXT Chain reaches BFT consensus with validator staking and slashing
 
-| Item | Value |
-|------|-------|
-| Contract (Ethereum) | `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195` |
-| Mirror (Base) | `0xa2c22252cdc8b7cddee1b0b2e242818509fcf7b8` |
-| Decimals | 18 |
-| Total and max supply | 5,000,000,000 SXT (fixed, no mint function) |
-| Circulating | Roughly 2.6 billion (about 52 percent) |
-| Upgradeable | No (non proxy, EIP 1967 slots empty) |
-| Privileged roles | DEFAULT_ADMIN_ROLE and PAUSER_ROLE, active and not renounced |
-| Transfer fee | None |
-| Extensions | ERC 20 Permit (EIP 2612) and ERC20Votes |
-| Native chain | SXT Chain (SXT as staking and gas) |
+**CLAIM:**
+> "SXT Chain validators witness inserts via BFT consensus" and secure the network as a decentralized validator set.
 
----
+**REALITY:** CONFIRMED IN CODE. The runtime is a standard, genuine polkadot-sdk nominated proof of stake stack: BABE for block production, GRANDPA for BFT finality, `pallet_staking` for validator and nominator (delegator) staking with a Phragmen election, real bonding and unbonding periods, offence and equivocation reporting, and slashing. This is substantive protocol engineering, not a claim without code.
 
-## 11. Conclusion
+**EVIDENCE:**
+```rust
+// sxt-node/runtime/src/lib.rs
+// L103-147 construct_runtime: pallet_babe, pallet_grandpa, pallet_session, pallet_staking, pallet_offences, ...
+// L573 impl pallet_staking::Config for Runtime { ... }
+// L562-568 SessionsPerEra=24, BondingDuration=7 eras, SlashDeferDuration=6, OffendingValidatorsThreshold=17%
+// L450 pallet_grandpa::EquivocationReportSystem (slashing on equivocation)
+// L536 impl pallet_staking::EraPayout ... (staking reward emission)
+```
 
-Space and Time is one of the more genuine verifiable data and AI projects, which places it at 74 out of 100, LOW risk, Passed. Its flagship Proof of SQL prover is real, open source, benchmarked and actively developed, SXT Chain is live on mainnet, and the token has authentic protocol level utility as the staking asset and the gas paid for queries, with the headline Chainlink and Microsoft relationships substantiated. The token contract reinforces this: a fixed five billion supply with no mint function, non upgradeable and fee free, confirmed across three independent sources. The cautions are control and maturity rather than legitimacy, namely active and unrenounced admin and pauser roles that can halt transfers, a sizable team and investor unlock schedule that overhangs supply over four years, and a young network whose traction is real but early. This is a project whose product is shipped and inspectable, with the residual risk sitting in centralized controls and early stage adoption.
+**IMPACT:** Positive. The consensus, staking, election, and slashing the whitepaper describes exist in the deployed runtime. Informational.
 
 ---
 
-## 12. Recommendations
+## Claim 4: SXT Chain is a live, decentralized database
 
-**For the Space and Time team:**
-- Move the admin and pauser roles toward a timelock or a documented multisig, publish the role holder addresses, and set out a path to reduce or renounce pause control as the chain matures.
-- Link the Audited by logos to the actual Hashlock, Spearbit, Pashov and Cantina reports so visitors can verify audits in one click.
-- Continue publishing live validator, staking and query volume metrics so the growing traction is transparent, and serve production helper scripts from first party hosting.
+**CLAIM:**
+> "SXT Chain is the decentralized validator set ... a decentralized database" that is "trustless."
 
-**For users:**
-- Treat the technology and token utility as real and live, while recognizing the network is young and adoption is still ramping, so the token is speculative.
-- Understand that supply is genuinely fixed with no mint, but a privileged role can pause transfers, and large team and investor tranches unlock over four years.
-- Verify the token address independently (the official blog, the RPC identity and the aggregator listing all agree) before transacting.
+**REALITY:** OVERSTATED. The consensus design is decentralized, but the operating reality is a young, operator gated network with several central control points:
+
+1. A `pallet_sudo` root superuser exists and is the admin origin for staking. Root can force eras, override permissions, and administer the chain.
+2. A `pallet_permissions` role based access control layer gates privileged on chain actions (creating and updating tables, inserts, permission changes). Permissions are granted by root or by an account already holding `UpdatePermissions`.
+3. Validator and staker onboarding is not native to the chain. It runs through Ethereum L1 contracts owned by Space and Time, and is bridged onto the chain. The public docs list six bootnodes, all "hosted by Space and Time and trusted partners."
+
+**EVIDENCE:**
+```rust
+// runtime/src/lib.rs:116,492 pallet_sudo ; L592 type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>; // Admin is sudo
+```
+```rust
+// pallets/permissions/src/lib.rs:88-100 set_permissions(...)
+Self::ensure_root_or_permissioned(origin.clone(), &PermissionLevel::UpdatePermissions)?;
+```
+```markdown
+// sxt-node/docs/mainnet.md
+"The new Space and Time Mainnet does not use Substrate keys. Stakers and Node operators will only use
+ Ethereum keys ... to interact with Space and Time's Staking and Messaging contracts. Transactions ...
+ will then be reflected on chain."
+"The six bootnodes listed below are hosted by Space and Time and trusted partners"
+"You need at least 100 SXT in order to onboard a validator node."
+```
+
+**IMPACT:** The chain is decentralizable by design and centrally governed in practice today: a root key, an RBAC permission gate, an L1 staking contract set owned by the founding entity, and a small operator run bootnode set. "Decentralized database" is the roadmap and the architecture, not yet the operational posture. Medium.
 
 ---
 
-## 13. Verification
+## Claim 5: SXT is the validator and delegator staking asset
 
-- MEFAI onchain analysis: a direct Ethereum read of the SXT contract (identity, 18 decimals, fixed five billion total supply with no mint selector, non proxy deployment, no transfer fee, and active DEFAULT_ADMIN_ROLE and PAUSER_ROLE with paused false), cross checked against the published tokenomics.
-- Product checks: the open source Proof of SQL repository at `spaceandtimefdn/sxt-proof-of-sql` (Rust, DOSL 1.0, active development and published benchmarks), confirmation that SXT Chain is live on mainnet with SXT staking and SXT denominated query gas, and the native Chainlink integration.
-- Frontend review: a live review of the spaceandtime.io homepage (static marketing page, no wallet connection, no embedded token address, no drainer behavior, audit logos not linked to reports).
-- Project statements: the project's website and blog (verifiable database and Proof of SQL positioning, live on mainnet and ready for production claims, the SXT staking and query utility, the partner roster, and the fixed five billion supply and vesting outline).
-- Sources: `spaceandtime.io/blog introducing the SXT token`; `docs.spaceandtime.io stake sxt and delegated staking`; `github.com/spaceandtimefdn/sxt-proof-of-sql`; `etherscan 0xe6bfd3...`; `coingecko space-and-time`; `ethereum-rpc.publicnode.com`; `l2beat sxt`.
+**CLAIM:**
+> SXT is staked by validators and delegated (nominated) by holders to secure the chain.
+
+**REALITY:** CONFIRMED IN CODE. Staking exists in two coordinated layers. On the chain, `pallet_staking` provides validator and nominator staking with a fixed nomination quota. On Ethereum L1, the `sxt-node-op-contracts` repository ("SXT staking contracts, for staking SXT tokens, nominating validators and unstaking") holds the actual SXT and mirrors stake and nominations onto the chain through a messaging contract and a Substrate signature validator.
+
+**EVIDENCE:**
+```rust
+// runtime/src/lib.rs:583 type NominationsQuota = pallet_staking::FixedNominationsQuota<MAX_QUOTA_NOMINATIONS>; // 16
+// L807 impl pallet_session::Config ... ValidatorIdOf = pallet_staking::StashOf<Self>
+```
+```solidity
+// sxt-node-op-contracts/src/  Staking.sol, StakingPool.sol, CollaborativeStaking.sol,
+//   CollaborativeStakingFactory.sol, SXTChainMessaging.sol, SubstrateSignatureValidator.sol
+// Staking.sol:13 contract Staking is IStaking, Ownable, Pausable
+```
+
+**IMPACT:** Positive. SXT is genuinely the staking and nomination asset, exactly as marketed. The caveat, that the L1 staking contract is `Ownable` and `Pausable`, is covered in Claim 8. Informational.
 
 ---
 
-*Mefai Security Research. Independent claim versus reality assessment. Onchain data verified with read only public RPC.*
+## Claim 6: SXT is the gas that pays for chain queries and table updates
+
+**CLAIM:**
+> "SXT gas is spent by clients of the chain to create and update tables" and to pay for queries.
+
+**REALITY:** OVERSTATED (as an SXT exclusive toll). Query and table payment is real and implemented through the ZKPay system: an L1 ZKPay contract emits payment events (`SendPayment`, `NewQueryPayment`, `PaymentSettled`, `QueryFulfilled`) that the chain ingests and settles in `pallet_zkpay`. But payment is explicitly multi asset. ZKPay maintains a registry of supported assets, each with its own Chainlink style price feed and staleness threshold, and the supported asset set, treasury, and price feeds are all configured by root. So a client can pay query fees in whatever assets the operator has enabled (priced via oracle), not necessarily in SXT. The precise statement is that SXT is a supported and intended payment and staking asset, not the sole mandatory unit for every query.
+
+**EVIDENCE:**
+```rust
+// sxt-node/pallets/zkpay/src/lib.rs
+// L111-123 Asset { allowed_payment_types (bitmask), price_feed, stale_price_threshold_in_seconds }
+// L136-197 set_supported_asset / set_treasury / remove_supported_asset -> all ensure_root(origin)?
+// L203-229 process_send_payment / process_new_query_payment / process_payment_settled / process_query_fulfilled
+```
+
+**IMPACT:** Query payment is genuinely implemented, but it is an oracle priced, multi asset, admin configured fee system. "SXT gas pays for everything" is true as an intention and false as an exclusivity claim. Medium.
+
+---
+
+## Claim 7: SXT is a fixed 5,000,000,000 supply token that can never be minted
+
+**CLAIM:**
+> SXT has a fixed supply of 5 billion, with no minting.
+
+**REALITY:** CONFIRMED IN CODE for the Ethereum ERC20, with one honest nuance for the chain. The `SpaceAndTime` contract mints the entire 5,000,000,000 supply once in its constructor and exposes no `mint` function anywhere, so the L1 token is genuinely fixed and non inflationary. We verified the deployed contract live on Ethereum mainnet. The nuance is that the SXT Chain native token is a distinct, inflationary balance: `pallet_staking` mints new native units as staking rewards at roughly 9.7 percent of total staked per year. So "no SXT is ever minted" is accurate for the L1 contract but not for the protocol as a whole.
+
+**EVIDENCE:**
+```solidity
+// sxt-token/src/SpaceAndTime.sol:16-22
+constructor(address defaultAdmin, address pauser, address recipient) ... {
+    _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+    _grantRole(PAUSER_ROLE, pauser);
+    _mint(recipient, 5_000_000_000 * 10 ** decimals());   // only mint, in the constructor; no mint() function exists
+}
+```
+Live on chain verification (Ethereum mainnet `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195`, via `eth_call`):
+```
+totalSupply() = 0x1027e72f1f12813088000000 = 5,000,000,000 x 10^18   (fixed)
+decimals()    = 18
+symbol()      = "SXT"
+paused()      = false
+PAUSER_ROLE() = 0x65d7a28e...440d862a  (== keccak256("PAUSER_ROLE"), confirms the pausable role-gated contract)
+```
+Chain side inflation (distinct native token):
+```rust
+// sxt-node/runtime/src/lib.rs:548-551
+let base_rate = FixedU128::from_rational(97, 1000);        // ~9.7% / year
+let yearly_emission = base_rate.saturating_mul_int(total_staked);
+// L590 type Reward = (); // Rewards are minted not transfered
+```
+
+**IMPACT:** The tradeable L1 SXT asset is genuinely fixed at 5 billion and cannot be minted, which we confirmed on chain. Anyone reading "fixed supply, no mint" as covering all SXT everywhere should note the chain level native staking token emits roughly 9.7 percent annually to reward validators. Low.
+
+---
+
+## Claim 8: The token is a plain, trust minimized ERC20
+
+**CLAIM:**
+> SXT is a standard ERC20 token.
+
+**REALITY:** CONFIRMED, and it carries admin powers worth stating plainly. `SpaceAndTime` is `ERC20Pausable` plus `AccessControl` plus `ERC20Votes`. A holder of `PAUSER_ROLE` can pause the token, and while paused every transfer reverts because `_update` routes through `ERC20Pausable`. A holder of `DEFAULT_ADMIN_ROLE` controls all role assignments and can grant itself the pauser role. This is a legitimate, disclosed design (the project's own Aderyn static analysis flags it as "L-1: Centralization Risk for trusted owners"), but it means SXT is not an immutable, ungovernable token: a privileged key can freeze all transfers network wide.
+
+**EVIDENCE:**
+```solidity
+// sxt-token/src/SpaceAndTime.sol:11  contract SpaceAndTime is ERC20, ERC20Pausable, AccessControl, ERC20Permit, ERC20Votes
+// L12  bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+// L24-30 function pause() public onlyRole(PAUSER_ROLE) { _pause(); }  // unpause likewise
+// L32-34 _update(...) override(ERC20, ERC20Pausable, ERC20Votes)  // paused => every transfer reverts
+```
+```
+// sxt-token/report.md  (project's own audit output)
+"L-1: Centralization Risk for trusted owners ... privileged rights to perform admin tasks"
+```
+The L1 staking contract carries the same posture: `Staking.sol` is `Ownable, Pausable`, starts paused in its constructor, and only the owner can unpause staking or unstaking, so the owner can in principle halt withdrawals.
+```solidity
+// sxt-node-op-contracts/src/Staking.sol:13 contract Staking is IStaking, Ownable, Pausable
+// L113 _pause();  // constructor  ; L228-229 function unpauseUnstaking() external onlyOwner { _unpause(); }
+```
+
+**IMPACT:** SXT and its staking contract are governed, pausable instruments controlled by privileged keys. The token is not currently paused (verified on chain), but the power to freeze all transfers, and to freeze unstaking, exists and rests with an admin or owner key. This is standard for a young protocol but it is a real centralization vector, not a trustless one. Medium (token freeze capability), with the staking freeze as a Low.
+
+---
+
+## Additional Note: The prover and the indexed data layer are operated off chain
+
+Worth stating plainly because it frames the whole "decentralized verifiable database" narrative. The chain witnesses and stores cryptographic commitments to tables, and Proof of SQL lets anyone verify a query against those commitments. But the parties that actually index the source data, hold the full tables, and run the (GPU accelerated) Proof of SQL prover are off chain operators, today primarily Space and Time and its indexer and attestor nodes. The on chain guarantee is that a returned result is consistent with the committed data. The availability, completeness, and timeliness of the underlying data, and the operation of the prover, are operator responsibilities, not properties enforced by a permissionless validator set.
+
+**EVIDENCE:**
+```
+sxt-node/pallets/{indexing,commitments,attestation,prover_db_indexer}  // indexer + attestor + commitment roles
+docs/{indexer.md, attestor.md}  // separate indexer and attestor onboarding, operator run
+README: prover accelerated on NVIDIA GPUs via Blitzar ; run by data operators, not by chain validators
+```
+
+**IMPACT:** The verifiability guarantee (a result matches the committed data) is real and cryptographic. The "decentralized database" guarantee (that no single operator controls the data and prover) is aspirational at this stage. Informational.
+
+---
+
+## Conclusion
+
+Space and Time is a genuine, high quality cryptographic project whose code substantially delivers what it markets. Proof of SQL is a real, sound zero knowledge argument system with a fully implemented prover and a verifier that genuinely rejects invalid proofs (Claim 1). The SXT Chain runs authentic BABE and GRANDPA consensus with real staking, election, and slashing (Claim 3). SXT is the real staking and nomination asset (Claim 5), and the L1 token is a genuinely fixed 5,000,000,000 supply asset with no mint path, which we confirmed live on chain (Claim 7). Nothing in this review is fabricated or a lie. There are zero FALSE findings.
+
+The overstatements are the familiar gap between "decentralized and trustless" marketing and a young network that today leans on central control points: a root `sudo` key, an RBAC permission gate, an L1 staking contract set owned and pausable by the founding entity, a small operator run bootnode set, and a prover and data indexing layer run off chain by Space and Time. The "zero knowledge" branding delivers verifiable correctness rather than data privacy, "SXT gas" is an oracle priced multi asset fee system rather than an SXT only toll, and the token, while fixed on L1, is pausable by an admin and shadowed by an inflationary chain side staking token.
+
+None of this is fraud. It is the difference between a strong, working, openly published cryptography and staking stack in its early operating phase, and the fully decentralized, trustless end state the marketing describes. Score 80 out of 100, LOW to MEDIUM RISK, driven entirely by maturity and centralization caveats rather than by any dishonest or broken code.
+
+| Claim | Verdict |
+|-------|---------|
+| Proof of SQL is a real ZK prover and verifier for SQL | CONFIRMED IN CODE |
+| The proofs are "zero knowledge" (private) | OVERSTATED (verifiable correctness, results and commitments public) |
+| SXT Chain reaches BFT consensus with staking and slashing | CONFIRMED IN CODE |
+| SXT Chain is a live, decentralized, trustless database | OVERSTATED (sudo, RBAC, L1 owned staking, 6 SxT/partner bootnodes) |
+| SXT is the validator and delegator staking asset | CONFIRMED IN CODE |
+| SXT is the gas for every query and table update | OVERSTATED (multi asset, oracle priced, admin configured ZKPay) |
+| Fixed 5B supply, no mint (L1 ERC20) | CONFIRMED IN CODE (verified on chain; chain side 9.7% staking inflation nuance) |
+| Plain, trust minimized token | CONFIRMED, admin pausable (privileged key can freeze all transfers) |
+
+Tally: CONFIRMED IN CODE 5, OVERSTATED 3, FALSE 0.
+
+---
+
+## Verification and Sources (exact repositories and files read)
+
+Proof of SQL (`sxt-proof-of-sql`, branch `main`):
+- crates/proof-of-sql/src/sql/proof/query_proof.rs (prove L107-321, verify L327-555; sumcheck verify L425, evaluation-proof verify L532, error checks L507/L516/L532)
+- crates/proof-of-sql/src/proof_primitive/sumcheck/{proof.rs, prover_round.rs, prover_state.rs}
+- crates/proof-of-sql/src/proof_primitive/dory/{dory_commitment_evaluation_proof.rs, setup.rs, public_parameters.rs}
+- crates/proof-of-sql/src/proof_primitive/{hyperkzg/*, inner_product/inner_product_proof.rs}
+- crates/proof-of-sql/src/base/proof/{keccak256_transcript.rs, transcript.rs}
+- crates/proof-of-sql/README.md
+
+Chain (`sxt-node`, branch `main`):
+- runtime/src/lib.rs (construct_runtime; pallet_babe L521, pallet_grandpa L442, pallet_staking L573, EraPayout L536-553, AdminOrigin/sudo L492/L592, pallet_session L807, pallet_permissions L837)
+- pallets/permissions/src/lib.rs (set_permissions ensure_root_or_permissioned L88-100)
+- pallets/zkpay/src/lib.rs (Asset registry L111-123, ensure_root setters L136-197, payment processing L198-229)
+- Cargo.toml (workspace members), README.md, docs/mainnet.md (Ethereum-key staking, 6 bootnodes, 100 SXT onboarding)
+
+Token (`sxt-token`, branch `main`):
+- src/SpaceAndTime.sol (ERC20Pausable + AccessControl + ERC20Votes; 5B mint L21; PAUSER_ROLE L12; pause L24-30)
+- src/SXTDeployer.sol (defaultAdmin / pauserAdmin config), report.md (Aderyn "L-1: Centralization Risk for trusted owners")
+
+Staking contracts (`sxt-node-op-contracts`, branch `main`):
+- src/Staking.sol (Ownable + Pausable, constructor _pause L113, unpauseUnstaking onlyOwner L228)
+- src/{StakingPool.sol, CollaborativeStaking.sol, CollaborativeStakingFactory.sol, SXTChainMessaging.sol, SubstrateSignatureValidator.sol}, README.md
+
+On chain (Ethereum mainnet, `eth_call` to a public RPC):
+- SXT `0xE6Bfd33F52d82Ccb5b37E16D3dD81f9FFDAbB195`: totalSupply = 5,000,000,000 x 10^18, decimals 18, symbol "SXT", paused false, PAUSER_ROLE = keccak256("PAUSER_ROLE")
+
+Documentation:
+- docs.spaceandtime.io, spaceandtime.io (Proof of SQL, SXT Chain, staking, and gas descriptions)
+
+---
+
+## Disclaimer
+
+This report documents the relationship between Space and Time's public marketing and documentation claims and its publicly available open source code, together with one live read of the deployed token on Ethereum mainnet. All findings are based on source read from the spaceandtimefdn GitHub organization and on the project's own documentation. Space and Time is a genuine project with substantial original cryptography; this review credits what the code delivers and flags where marketing language runs ahead of the implementation or where the trust model is more centralized than "decentralized" implies. Read only review, no systems were accessed or modified.
+
+**Report Date:** 2026-08-05
+**Website:** https://mefai.io

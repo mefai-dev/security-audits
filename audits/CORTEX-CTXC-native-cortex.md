@@ -1,190 +1,259 @@
-# Security Audit Report: Cortex (CTXC), Native Coin of the Cortex Chain
+# Cortex (CTXC): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 58/100, MEDIUM RISK**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | Cortex |
-| **Token Symbol** | CTXC |
-| **Canonical asset** | Native coin of the Cortex layer one (PoW) |
-| **Legacy contract (Ethereum)** | `0xea11755ae41d889ceec39a63e6ff75a02bc1c00d` (deprecated ERC 20 mirror) |
-| **Chain** | Cortex native layer one; legacy Ethereum ERC 20 mirror exists |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **49/100** |
-| **Overall Risk** | **HIGH** |
-| **Verdict** | **Flagged** |
+**Date:** 2026-08-05
+**Coin:** CTXC (native coin of the Cortex chain; total supply 299,792,458, the speed of light in m/s; second unit "Endorphin" prices inference gas)
+**Chain:** Cortex mainnet "Arnold" (2019), an EVM compatible go-ethereum fork with added AI opcodes
+**Websites:** cortexlabs.ai, zkmatrix.cortexlabs.ai
+**GitHub:** github.com/CortexFoundation (CortexTheseus, torrentfs, inference, cvm-runtime, zkcvm-mono)
+
+---
+
+## Severity Summary
+
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| High | 2 |
+| Medium | 3 |
+| Low | 1 |
+| Informational | 2 |
+
+---
+
+## Why This Report Exists
+
+Cortex is one of the oldest "AI on blockchain" projects, launched in 2018 with backing from Bitmain and FBG Capital. Its central promise was radical for its time: run real machine learning models deterministically inside the virtual machine, so that a smart contract can call an AI model and every node agrees on the output. That is a hard problem, and most projects that claimed it never wrote the code. Cortex did.
+
+This report reads the actual public source, claim by claim, and applies the same discipline we apply to projects whose code contradicts their marketing. The result is mixed in an unusual way. The flagship engineering is genuinely present and genuinely clever, and we credit it in full. But the live marketing today describes a thriving world computer and a launching Layer 2, while the reality is a dormant network with an untradeable, delisted coin, an AI engine frozen at 2022 to 2023 versions, and a "ZkMatrix" Layer 2 that returns an error page instead of a running rollup.
+
+We are not making accusations and we are not spreading FUD. We read the source and show what is actually implemented.
+
+## Method
+
+For every major claim on cortexlabs.ai we located the relevant code in the real repositories, fetched raw files from GitHub, and read what is implemented. We traced the full on chain inference path from the CVM opcode down to the native inference library call, we read the go.mod pins to learn which versions the live client actually links, and we checked the ZkMatrix repositories and site against the "launching" language. Each claim is labelled CONFIRMED IN CODE, OVERSTATED, or FALSE, with a repository path, file, line, and a short snippet. Market and delisting facts were cross checked against exchange announcements and price aggregators.
+
+---
+
+## The Foundation: A go-ethereum Fork Carrying a Real AI Extension, on a Dead Market
+
+**CLAIM:**
+> "The first decentralized world computer capable of running AI and AI-powered dApps."
+
+**REALITY:** Two separate truths sit here. First, the base client is a go-ethereum fork. The recent commit stream in CortexTheseus is dominated by upstream geth cherry picks (for example `p2p/nat: server list contains IPv6 servers (#35084)`, `accounts/abi: fix wrong want count for events (#35077)`, `rpc: reject empty batch in BatchCallContext (#34985)`, `crypto/ecies: correctly return ErrInvalidMessage (#35037)`). Those are go-ethereum pull request numbers and go-ethereum commit message prefixes. The virtual machine itself is geth's EVM renamed to CVM (the file is `core/vm/cvm.go`). This is normal and not deceptive, but it means the "active development" a casual observer sees is largely the base layer tracking Ethereum, not AI feature work.
+
+Second, the coin the world computer runs on is effectively dead. CTXC was delisted by Binance on 2025-04-16 (first "Vote to Delist" batch) and by OKX on 2025-06-20 (cited: low volume and liquidity). Price is roughly $0.0008, market cap roughly $0.19M, rank roughly #4,800, and CoinGecko reports no trades in the last 24 hours and no active tickers, a fall of roughly 99.97% from the 2018 all time high of $2.39. The lifetime low was set on 2026-05-31, weeks before this review.
+
+**IMPACT:** The phrase "world computer capable of running AI" describes a real capability (see Claim 1) on a chain that almost nobody trades or transacts on anymore. Informational for the fork provenance; the market status is context that makes several present tense marketing claims read as aspirational rather than current.
+
+---
+
+## Claim 1: The CVM runs AI model inference on chain via the Synapse engine
+
+**CLAIM:**
+> "The CVM is EVM-compatible with added support for on chain AI inference" and "utilizes the GPU instead of the CPU to execute nontrivial AI models."
+
+**REALITY:** CONFIRMED IN CODE. This is the real thing, and it is the strongest confirmation in the report. The CVM defines two extra opcodes, INFER (0xc0) and INFERARRAY (0xc1), wires them into the live instruction set, validates the referenced model and input, then calls a native inference library that actually executes a quantized neural network and writes the result back into contract memory. The whole path exists end to end and is not a stub.
+
+**EVIDENCE:**
+```go
+// core/vm/opcodes_infer.go:~20
+INFER      OpCode = 0xc0
+INFERARRAY OpCode = 0xc1
+// NNFORWARD 0xc2  (commented out)
+```
+```go
+// core/vm/jump_table.go:185-192  (opcodes are live in the instruction set)
+instructionSet[INFER]      = &operation{ execute: opInfer,      gasCost: gasInfer, ... }
+instructionSet[INFERARRAY] = &operation{ execute: opInferArray, gasCost: gasInferArray, ... }
+```
+```go
+// core/vm/instructions_infer.go:92-134  opInfer(...)
+modelMeta, err := checkModel(cvm, modelAddr)      // uploaded, mature, not expired, gas <= limit
+inputMeta, err := checkInputMeta(cvm, inputAddr)
+// shape match enforced (L107-121)
+output, err := cvm.Infer(modelMeta.Hash.Hex(), inputMeta.Hash.Hex(), modelMeta.RawSize, inputMeta.RawSize) // L123
+scope.Memory.WriteSolidityUint256Array(int64(_outputOffset.Uint64()), output)                              // L128
+```
+```go
+// core/vm/cvm_infer.go:104-121  Infer(...) delegates to the Synapse engine
+import "github.com/CortexFoundation/inference/synapse"   // L24
+inferRes, errRes = synapse.Engine().InferByInfoHashWithSize(model, input, cvmVersion, cvm.chainConfig.ChainID.Int64()) // L121
+```
+```go
+// inference/synapse/local_infer.go:195-219  the actual native execution
+modelJson, _   := s.config.Storagefs.GetFileWithSize(ctx, modelHash, modelSize, SYMBOL_PATH)
+modelParams, _ := s.config.Storagefs.GetFileWithSize(ctx, modelHash, modelSize, PARAM_PATH)
+model, status  := kernel.New(s.lib, modelJson, modelParams, deviceType, s.config.DeviceId) // L209
+result, status  = model.Predict(inputContent, cvmVersion)                                   // L219 (native cgo call)
+```
+```go
+// inference/synapse/synapse.go:61,78-89  the native library that runs the model
+lib *kernel.LibCVM
+lib, status = kernel.LibOpen(PLUGIN_PATH + PLUGIN_POST_FIX)  // "plugins/" + "libcvm_runtime.so"
+```
+The native library `libcvm_runtime.so` is built from the `cvm-runtime` repository, a substantial C++ and CUDA machine learning runtime (1,409 commits, with `src/`, `include/`, `kernel/`, and `python/` directories) whose README lists real measured latencies for resnet50, yolo, vgg16, vgg19, mobilenet, squeezenet, and shufflenet across CPU, Jetson Nano, and 1080Ti GPUs.
+
+**IMPACT:** Positive and load bearing. On chain AI inference is not vaporware here. A contract really can reference an uploaded model and an input by their storage hashes, and the node really loads the model into a native runtime and runs a forward pass as part of transaction execution. Very few chains have ever shipped this. Informational (this is the credit side of the report).
+
+---
+
+## Claim 2: Synapse gives deterministic inference, identical across every node
+
+**CLAIM:**
+> "A deterministic inference engine that guarantees exactly the same AI inference result across heterogenetic computing environments," enabling "deterministic on chain AI inference without resorting to off chain solutions."
+
+**REALITY:** CONFIRMED IN CODE. Determinism is the whole reason this can be a consensus operation, and the design that delivers it is visible in the code. Models are stored as a fixed symbol graph plus fixed integer parameters and are executed by a single shared native library (`libcvm_runtime.so`) using integer quantized operators, so the forward pass is reproducible rather than floating point dependent. The engine keys its result cache on the RLP hash of the model hash concatenated with the input hash, which only makes sense if a given model plus input is expected to always produce the same output. The opcode gas is also derived deterministically from the model graph rather than from wall clock cost.
+
+**EVIDENCE:**
+```go
+// inference/synapse/local_infer.go:126  deterministic result key (model + input -> one output)
+cacheKey := RLPHashString(modelHash + "_" + inputHash)
+if v, ok := s.simpleCache.Load(cacheKey); ok { return v.([]byte), nil }   // L132-136
+```
+```go
+// inference/synapse/local_infer.go:63-86  gas fixed by the model graph, not by runtime
+gas, status := kernel.GetModelGasFromGraphFile(s.lib, modelJson)
+```
+```go
+// core/vm/instructions_infer.go:36-64  checkModel enforces maturity so all nodes see the same model state
+matureBlockNumber := cvm.ChainConfig().GetMatureBlock()
+if blockNum.Int64() > cvm.Context.BlockNumber.Int64()-matureBlockNumber { return nil, ErrMetaInfoNotMature }
+if blockNum.Int64() < cvm.Context.BlockNumber.Int64()-params.ExpiredBlks { return nil, errMetaInfoExpired }
+```
+Model and input files are content addressed and distributed over the project's own torrent file system (`github.com/CortexFoundation/torrentfs`), so every node fetches the identical bytes by infohash before inference.
+
+**IMPACT:** Positive. The determinism claim is honest and is backed by a genuine integer quantized runtime plus content addressed model storage. This is the technical heart of the project and it holds up. Informational.
+
+---
+
+## Claim 3: A live world computer where AI dApps actually run on chain
+
+**CLAIM:**
+> "The first decentralized world computer capable of running AI and AI-powered dApps." The site presents on chain inference as a working, in use product.
+
+**REALITY:** OVERSTATED. The mechanism is real (Claims 1 and 2), but there is no verifiable production usage. The only concrete dApp references are old marketing artifacts (a game called Digital Clash and a conceptual AI enhanced CryptoKitties). Both the 2022 and the 2025 official project updates contain zero usage, dApp, or inference statistics; they describe foundational research and development only. The market data reinforces this: a chain with no trades in 24 hours and a roughly $0.19M cap is not hosting meaningful AI dApp activity. The code proves the feature can run; it does not show that anyone is running it.
+
+**EVIDENCE:**
+- The inference feature works exactly as coded (Claim 1), but usage is external evidence, and none is available. DappRadar's Cortex page could not be retrieved (HTTP 403), and no block explorer metric, user count, or inference count is published by the project.
+- The differentiating opcode has not been meaningfully touched in years. In the CortexTheseus repository the `inference/` directory's last substantive commit is "inference independent" dated 2020-08-14, while the surrounding client keeps merging 2026 go-ethereum changes.
+
+**IMPACT:** The capability is genuine but the "world computer running AI dApps" framing describes adoption that the evidence does not support. Read it as "a chain that can run on chain inference," not "a chain where on chain inference is actively used." High, because the gap between the marketed present tense and the observable reality is large.
+
+---
+
+## Claim 4: An actively developed, cutting edge on chain AI platform
+
+**CLAIM:**
+> Ongoing marketing and roadmap language presents Cortex as an actively advancing AI blockchain (TVM and PyTorch frontends, planned LLM support).
+
+**REALITY:** OVERSTATED. The base client is maintained, but the AI specific stack that makes Cortex distinctive is frozen at old versions. The live client does not build against a current inference engine; it pins pseudo versions from 2022 and 2023. In other words, the part of the code that runs AI has not moved in years even though the geth base is current (go 1.25.7). Releases have also slowed markedly (the latest tagged release, v1.10.72 "Liquid", is dated 2025-02-25).
+
+**EVIDENCE:**
+```gomod
+// go.mod:7   the AI inference engine the live client links is a March 2023 snapshot
+github.com/CortexFoundation/inference v1.0.2-0.20230307032835-9197d586a4e8
+// go.mod:83  the native model runtime is a November 2022 snapshot
+github.com/CortexFoundation/cvm-runtime v0.0.0-20221117094012-b5a251885572 // indirect
+```
+```go
+// go.mod:3   the base is kept modern while the AI dependencies are not
+go 1.25.7
+```
+The pseudo version timestamps (`20230307`, `20221117`) are the load bearing fact: the running node executes an inference engine last updated in early 2023 and a model runtime last updated in late 2022.
+
+**IMPACT:** The base blockchain is maintained, but the AI platform that is the entire point of Cortex is effectively in maintenance freeze. "Actively developed AI platform" overstates a stack whose inference components are pinned to 2022 and 2023. Medium.
+
+---
+
+## Claim 5: ZkMatrix, a launching Layer 2 zkRollup, live at up to 2000 TPS
+
+**CLAIM:**
+> "Launching ZkMatrix- Layer2 ZkRollup Solution," "ZkMatrix is a Layer2 Solution on Cortex Blockchain," with a live "Go to ZkMatrix" link to zkmatrix.cortexlabs.ai and a claimed target of up to 2000 TPS.
+
+**REALITY:** FALSE as presented. There is no working ZkMatrix Layer 2. The linked application at zkmatrix.cortexlabs.ai loads a landing shell and then fails with a "Wrong MainNetwork" error, showing no explorer data, no transactions, and no TPS. It offers no mainnet confirmation and no launch date. On the code side there is no dedicated ZkMatrix repository in the CortexFoundation organization at all. The only original ZK code is `zkcvm-mono`, described as "Zk solution for Scaling Cortex," which has a single commit, zero stars, a placeholder README containing only the word ZKCVM, four experimental directories (`axon-vm`, `axon`, `axon_circuits`, `vetric`), and a last push of 2024-06-07. The adjacent `zkml-tvm` is a fork of the TVM deep learning compiler, not a rollup. ZkMatrix was announced in February 2022, listed as "V1 in preparation" in September 2022, and is still referenced only as a "TestNet tool link" in the November 2025 roadmap.
+
+**EVIDENCE:**
+- Live site check: zkmatrix.cortexlabs.ai returns "Wrong MainNetwork" with a non functional "Launch App" button and no on chain data.
+- Repository check: no `CortexFoundation/zkmatrix` repository exists (probed, 404). The only original ZK repo, `zkcvm-mono`, is a single commit experimental prototype (0 stars, 0 forks, a placeholder README containing only the word ZKCVM, last push 2024-06-07). `zkml-tvm` is a third party TVM fork.
+- Timeline: announced Feb 2022, "in preparation" Sept 2022, still "TestNet tool link" as of the Nov 2025 roadmap, with roadmap milestones on the blockchain page only running through 2023 Q4.
+
+**IMPACT:** A Layer 2 marketed with present tense "launching" language and a live app link, but which returns an error and has no mainnet, no working rollup code in the open repositories, and a years long "in preparation" status, is not a real product. The 2000 TPS figure is an unverified target, not a measured live throughput. High.
+
+---
+
+## Additional Note: The model storage layer is real
+
+Worth stating because it supports Claim 1. Cortex did not fake the hard dependency either. Models and inputs are not pasted into calldata; they are content addressed blobs distributed by the project's own peer to peer file system, `github.com/CortexFoundation/torrentfs` (a maintained Go repository, 69 stars, active in 2026). The CVM references them by infohash and the Synapse engine fetches the symbol graph, the parameters, and the input by that hash before running inference. This is a coherent, genuinely built storage plus compute design, not a facade.
+
+**IMPACT:** Positive design disclosure. It is part of why the on chain inference claim is credible rather than cosmetic. Low.
+
+---
+
+## Conclusion
+
+Cortex is the rare subject where the flagship, hardest to fake claim is the one that is real. On chain AI inference through the CVM's INFER opcodes and the Synapse engine genuinely exists, is wired into the live instruction set, and executes quantized models through a real native C++ and CUDA runtime with reproducible, content addressed inputs. Determinism, the property that lets inference be a consensus operation, is honestly implemented. Two claims are confirmed in code and they are the important ones.
+
+The overstatements are about time and adoption, not about whether the core idea was built. The AI stack is frozen at 2022 and 2023 versions while the geth base ticks forward, there is no verifiable production usage of the inference feature, and the coin that powers it has been delisted by Binance and OKX and now trades at a fraction of a cent with no daily volume. The one outright false present tense claim is ZkMatrix: marketed as a launching Layer 2 zkRollup with a live app link, it returns a "Wrong MainNetwork" error, has no mainnet, and is backed in open source only by a single commit experimental prototype.
+
+None of this is a scam in the ICE sense. There are no hidden backdoors, no plaintext keys, no bypassed security checks. It is an older, pioneering project whose engineering was real and whose marketing has not been updated to match a dormant network. Score 58 out of 100, MEDIUM RISK, driven by staleness, absent usage, a delisted coin, and one false "live" Layer 2 claim, and lifted well above the scam range by a genuinely implemented inference engine.
+
+| Claim | Verdict |
+|-------|---------|
+| CVM runs on chain AI inference via Synapse | CONFIRMED IN CODE |
+| Deterministic inference identical across nodes | CONFIRMED IN CODE |
+| Live world computer with AI dApps actually running | OVERSTATED (no verifiable usage; feature dormant) |
+| Actively developed cutting edge AI platform | OVERSTATED (inference stack pinned to 2022 and 2023) |
+| ZkMatrix live Layer 2 zkRollup at up to 2000 TPS | FALSE (error page, no mainnet, single commit prototype) |
+
+Tally: CONFIRMED IN CODE 2, OVERSTATED 2, FALSE 1.
+
+---
+
+## Verification and Sources (exact repositories and files read)
+
+Client and CVM (CortexTheseus, branch master):
+- core/vm/opcodes_infer.go (INFER 0xc0, INFERARRAY 0xc1, NNFORWARD 0xc2 commented out)
+- core/vm/jump_table.go (INFER and INFERARRAY wired into instructionSet, lines 185 to 192)
+- core/vm/instructions_infer.go (opInfer, opInferArray, checkModel, checkInputMeta, shape checks)
+- core/vm/cvm_infer.go (Infer, InferArray, OpsInfer delegate to synapse.Engine(); import inference/synapse at line 24)
+- core/vm/cvm.go (the EVM renamed to CVM; go-ethereum fork provenance)
+- go.mod (module github.com/CortexFoundation/CortexTheseus; go 1.25.7; inference pinned v1.0.2-0.20230307032835; cvm-runtime pinned v0.0.0-20221117094012)
+- recent commit stream: upstream go-ethereum merges #35084, #35077, #34985, #35037
+- inference/ directory last substantive commit "inference independent" 2020-08-14
+- latest release v1.10.72 "Liquid" 2025-02-25
+
+Inference engine (inference, branch master):
+- synapse/synapse.go (Engine singleton, LibCVM, kernel.LibOpen of plugins/libcvm_runtime.so, remote vs local branch)
+- synapse/local_infer.go (infer(): fetch symbol/params/input from torrentfs by infohash, kernel.New line 209, model.Predict line 219, deterministic cache key line 126, GetModelGasFromGraphFile)
+- synapse/remote_infer.go, errors.go, result.go, utils.go (present)
+
+Native runtime (cvm-runtime, branch master):
+- repository structure src/, include/, kernel/, python/; 1,409 commits; README latency table (resnet50, yolo, vgg16, vgg19, mobilenet, squeezenet, shufflenet on CPU/Jetson/1080Ti)
+- consumed by the live client at the November 2022 pseudo version
+
+Storage:
+- torrentfs (peer to peer content addressed model and input storage, active in 2026)
+
+ZK and Layer 2:
+- zkcvm-mono ("Zk solution for Scaling Cortex", 1 commit, 0 stars, placeholder README containing only the word ZKCVM, dirs axon-vm/axon/axon_circuits/vetric, last push 2024-06-07)
+- zkml-tvm (third party TVM compiler fork)
+- no CortexFoundation/zkmatrix repository (probed, 404)
+- zkmatrix.cortexlabs.ai returns "Wrong MainNetwork", no mainnet, no explorer data
+
+Market and public record:
+- cortexlabs.ai (CVM, Synapse, and ZkMatrix marketing wording)
+- Binance delisting announcement, CTXC in the first Vote to Delist batch, effective 2025-04-16
+- OKX delisting of CTXC spot pairs effective 2025-06-20 (low volume and liquidity)
+- CoinGecko cortex page and API: price roughly $0.0008, cap roughly $0.19M, rank roughly #4,800, no trades in 24h, no active tickers, all time high $2.39 on 2018-04-29, all time low 2026-05-31
+- Cortex project updates and half year roadmap (Sept 2022 update #105; Nov 2025 roadmap): ZkMatrix "in preparation" then "TestNet tool link"; no usage or dApp statistics
 
 ---
 
 ## Disclaimer
 
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
+This report documents the relationship between Cortex's public marketing claims and its publicly available open source code. All findings are based on source code read from the CortexFoundation GitHub organization, on the project's own site and updates, and on public exchange and market records. Cortex is an older project whose core on chain inference engine is genuinely implemented; this review credits what the code delivers and flags where the marketing runs ahead of a now dormant network. Read only review, no systems were accessed or modified.
 
----
-
-## Executive Summary
-
-Cortex is one of the earliest attempts to run artificial intelligence inference directly on a blockchain, a genuinely pioneering idea from the 2018 era. The audit confirms the technology is real and the chain still exists, but it also finds a project whose market presence and product momentum have quietly collapsed. The honest reading is that Cortex is now closer to dormant than to thriving.
-
-1. **The token has effectively stopped trading.** CoinGecko reports that CTXC has ceased trading on every exchange it lists, with a market capitalization around 186,000 dollars, a price near 0.0008 dollars, and roughly 50,000 dollars of daily volume. CTXC was delisted by OKX in June 2025, by ONUS in April 2025, and by Bithumb, which cited a failure to address investment warnings and a lack of disclosure transparency. A native coin that no longer trades on any listed venue has thin real utility.
-
-2. **The flagship AI narrative is largely undelivered or unused.** The site presents the Cortex Virtual Machine, the Synapse deterministic inference engine, and the ZkMatrix layer two as live pillars, yet ZkMatrix appears in the project's own roadmap as reaching its main version only in 2026, and MEFAI found no verifiable evidence of meaningful current on chain AI inference usage. The chain is secured by miners pursuing block rewards, not by demonstrable AI inference demand.
-
-3. **The public surface is stale and partly unreachable.** The marketing site at www.cortexlabs.ai carries a 2018 to 2023 copyright, and the official explorer at cerebro.cortexlabs.ai was unreachable across repeated attempts at review time. This is not what a currently thriving AI chain looks like.
-
-4. **The chain and the token contract are nonetheless real and clean.** The Cortex layer one still produces blocks through proof of work, with a network hashrate around 862 Gps and roughly 4,800 blocks per day in mid 2026, and the core client is still maintained on GitHub into 2026. The deprecated Ethereum mirror is a fixed cap, non mintable, non proxy, no fee token, and the homepage carries no wallet integration and no scam vectors.
-
-The contract is not a scam and the project is not deceptive, but as a going concern Cortex reads as effectively dormant: the token no longer trades on listed exchanges, the AI inference story shows no current traction, and the public surface is aging. This lands Cortex at 49 out of 100, Flagged.
-
----
-
-## 1. Token Overview
-
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | Cortex Coin / CTXC |
-| **Canonical form** | Native coin of the Cortex layer one; holders of the old Ethereum token were told to swap to the native coin |
-| **Legacy contract (Ethereum)** | `0xea11755ae41d889ceec39a63e6ff75a02bc1c00d` (deprecated mirror) |
-| **Decimals** | 18 |
-| **Max supply** | 299,792,458 CTXC (a deliberate reference to the speed of light in metres per second), hard capped and fully defined |
-| **Circulating supply** | Approximately 238,000,000 CTXC, near 79 percent of the cap |
-| **Emission** | Native proof of work mining, originally 2.5 CTXC per block on a four year halving schedule, plus a large preallocation |
-| **Mirror controls** | Owner is an externally owned account `0xb84041d064397bd8a1037220d996c16410c20f11`; the mirror is pausable but not a mint source |
-
----
-
-## 2. On chain Security Assessment (MEFAI analysis)
-
-MEFAI's direct read of the deprecated CTXC mirror on Ethereum returned:
-
-| Check | Result |
-|-------|--------|
-| Token identity | Cortex Coin, CTXC, 18 decimals, verified |
-| Total supply | 299,792,458, matching the hard cap and fully defined |
-| Mint authority | None, the mirror does not inherit any mintable module |
-| Pause authority | Present, held by an externally owned account, currently not paused |
-| Upgradeable | No, the implementation slot is empty, so it is not a proxy |
-| Transfer fee | None |
-
-**Interpretation.** At the contract level the mirror is clean: a fixed cap, non mintable, non upgradeable ERC 20 with no fee on transfer. The one residual contract concern is that the pause function sits behind a single externally owned account rather than a multisig, so that account could freeze transfers on the mirror. This is a minor caution rather than a red flag, and it matters less than usual because the mirror is deprecated. The material concerns for this project sit at the market and product level below, not in the token contract itself.
-
----
-
-## 3. Claim vs Reality: "Native coin of a thriving AI chain"
-
-> Site: Cortex presents CTXC as the native fuel of an active layer one that runs AI and AI powered applications, with the coin paying for transactions and inference and rewarding miners and model contributors.
-
-**Reality: the coin has stopped trading on listed exchanges.** CoinGecko reports that CTXC tokens have stopped trading on all exchanges it lists, with a market capitalization around 186,000 dollars, a price near 0.0008 dollars, and about 50,000 dollars of daily volume. The token was delisted by OKX in June 2025 and by ONUS in April 2025, and Bithumb announced a delisting citing a failure to address investment warnings and a lack of disclosure transparency. A native coin whose primary claim is being the fuel of a thriving ecosystem, yet which can no longer be bought or sold on any listed venue and carries a market capitalization in the low six figures, has thin real utility today. The chain still mines, but the economic life around the token has largely drained away.
-
----
-
-## 4. Claim vs Reality: "On chain AI inference is live" (CVM and Synapse)
-
-> Site: Cortex is described as the first decentralized world computer capable of running AI on the blockchain, with the Cortex Virtual Machine executing AI models on chain using GPUs and Synapse guaranteeing deterministic inference results.
-
-**Reality: real technology, no visible current usage.** The Cortex Virtual Machine is a genuine and historically pioneering piece of engineering, and Cortex was an early mover in on chain inference, so this is not vaporware. However, MEFAI found no public, verifiable evidence that on chain AI inference is being used at any meaningful scale today. The network hashrate reflects miners chasing block rewards rather than measurable inference demand, and the official explorer that would substantiate contract and inference activity, cerebro.cortexlabs.ai, was unreachable across repeated attempts at review time. A capability that exists but is not demonstrably used, and whose activity dashboard is not reachable, is an aspiration kept alive rather than a delivered, in demand product.
-
----
-
-## 5. Claim vs Reality: "ZkMatrix layer two"
-
-> Site: ZkMatrix is presented as a Cortex layer two using zkRollup technology to increase throughput and cut fees for AI computation, with third party writeups crediting it for a large surge in AI model deployments.
-
-**Reality: not yet delivered by the project's own timeline.** ZkMatrix appears in the project's own published roadmap as reaching its main version only in 2026, which places the flagship scaling layer in the future rather than in production. The widely repeated claim of a 400 percent surge in AI model deployments traces to third party marketing pages, not to independently verifiable on chain data, and MEFAI could not corroborate it. Presenting a roadmap item as an existing pillar, and repeating an unverified traction figure, is a transparency gap between the marketing framing and the delivered state.
-
----
-
-## 6. Claim vs Reality: "Active development" and the public surface
-
-> Site: The project positions itself as an actively developed AI chain with open source code and live infrastructure.
-
-**Reality: quiet maintenance on an aging surface.** There is genuine credit due here. The core client, CortexTheseus, and several supporting repositories under the CortexFoundation GitHub organization still received commits into 2026, so the codebase is not abandoned. The nature of that activity, though, reads as maintenance and dependency upkeep rather than major new delivery, and the outward surface is aging: the marketing site carries a 2018 to 2023 copyright, and the explorer was unreachable at review time. The picture is a mature project on quiet, custodial maintenance, not one in active growth.
-
----
-
-## 7. Positive Findings (Credited)
-
-- The Cortex native layer one genuinely exists and still produces blocks through proof of work, with a network hashrate around 862 Gps and roughly 4,800 blocks per day in mid 2026.
-- The Cortex Virtual Machine and on chain inference concept are real and historically pioneering, and Cortex was an early mover in the space.
-- The core client and supporting repositories are still maintained on GitHub into 2026, so the code is not abandoned.
-- The deprecated Ethereum mirror is a clean, fixed cap (299,792,458), non mintable, non upgradeable, no fee token.
-- The supply story is honest and precise, capped at 299,792,458 as a deliberate reference to the speed of light, with circulating supply near 238,000,000.
-- The homepage carries no wallet integration, no addresses, no obfuscated scripts, no fabricated audit badges, and no scam vectors, so it is low risk for end users.
-
----
-
-## 8. Findings by Severity
-
-| ID | Severity | Finding |
-|----|----------|---------|
-| CTXC 001 | **HIGH** | CTXC has stopped trading on all exchanges listed by CoinGecko; market capitalization around 186,000 dollars, price near 0.0008 dollars, daily volume around 50,000 dollars; delisted by OKX, ONUS, and Bithumb. |
-| CTXC 002 | **HIGH** | The flagship AI inference story shows no verifiable current usage; CVM and Synapse exist but demonstrable on chain inference demand is not evident, and the explorer was unreachable at review time. |
-| CTXC 003 | **MEDIUM** | ZkMatrix is framed as a live pillar but reaches its main version only in 2026 per the project's own roadmap; the 400 percent deployment surge claim is unverified third party marketing. |
-| CTXC 004 | **MEDIUM** | Aging public surface: the marketing site carries a 2018 to 2023 copyright and the official explorer cerebro.cortexlabs.ai was unreachable across repeated attempts. |
-| CTXC 005 | **LOW** | The deprecated ERC 20 mirror is pausable by a single externally owned account `0xb84041d064397bd8a1037220d996c16410c20f11`, which could freeze transfers on the mirror (currently not paused). |
-| CTXC 006 | **LOW** | Wrong destination risk: the ERC 20 mirror is deprecated and holders must swap to the native coin; sending mirror tokens to a native mainnet address risks loss, and the homepage carries no explicit do not send warning. |
-| CTXC 007 | **INFO** | Native chain is genuinely live and still mining, and the core client is maintained into 2026 (positive). |
-| CTXC 008 | **INFO** | The token contract is clean, fixed cap, non mintable, non proxy, and no fee, and the frontend is clean with no scam vectors (positive). |
-
----
-
-## 9. Risk Matrix
-
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified, fixed cap, non mintable, no transfer fee |
-| Supply / minting | Low risk | Fully capped at 299,792,458, no mint function on the mirror |
-| Product reality | High risk | Flagship ZkMatrix undelivered, no verifiable on chain inference usage, explorer unreachable |
-| Traction | High risk | Token stopped trading on all listed exchanges, market cap near 186,000 dollars, multiple delistings |
-| Transparency | Medium risk | Honest supply and no scam vectors, but live framing of aspirational features and an aging public surface |
-
----
-
-## 10. Technical Specifications
-
-| Item | Value |
-|------|-------|
-| Canonical asset | Cortex native coin (proof of work layer one) |
-| Legacy mirror contract | `0xea11755ae41d889ceec39a63e6ff75a02bc1c00d` (deprecated) |
-| Decimals | 18 |
-| Max supply | 299,792,458 CTXC (hard cap) |
-| Circulating supply | Approximately 238,000,000 CTXC |
-| Emission | Proof of work mining, 2.5 CTXC per block originally, four year halving, plus preallocation |
-| Upgradeable | No, the mirror is not a proxy |
-| Mint authority | None on the mirror |
-| Pause authority | Present on the mirror, held by an externally owned account, not paused |
-| Transfer fee | None |
-| Explorer | cerebro.cortexlabs.ai (unreachable at review time) |
-| Code | CortexFoundation on GitHub, maintained into 2026 |
-
----
-
-## 11. Conclusion
-
-Cortex deserves genuine credit for being an early and honest attempt to put AI inference on chain, and the audit confirms that the chain still mines, the code is still maintained, and the token contract is clean and fixed at its speed of light cap. As a whole project, however, it scores 49 out of 100 and is Flagged, because the reality has drifted well behind the marketing. CTXC has stopped trading on every listed exchange and now carries a market capitalization in the low six figures after delistings by OKX, ONUS, and Bithumb, the flagship ZkMatrix layer two is a future roadmap item rather than a live pillar, there is no verifiable current usage of the on chain inference the project is built around, and the public surface is aging with a stale site and an unreachable explorer. The caution here is not a contract exploit or a fraud, it is a mature project that has quietly gone dormant while its site still speaks in the present tense.
-
----
-
-## 12. Recommendations
-
-**For the Cortex team:**
-- Restore the official explorer at cerebro.cortexlabs.ai and publish live activity metrics so on chain inference usage can be verified.
-- Clearly separate delivered features from roadmap items, and stop presenting ZkMatrix as a live pillar until its main version ships.
-- Retract or independently substantiate the 400 percent deployment surge figure.
-- Refresh the marketing site and add an explicit warning that the Ethereum mirror is deprecated and must not be sent to a native mainnet address.
-
-**For users:**
-- Treat CTXC as effectively dormant: it no longer trades on listed exchanges, liquidity is minimal, and the market capitalization is in the low six figures.
-- Understand that the on chain AI inference narrative is real technology with no demonstrable current usage, not a thriving product.
-- If holding the deprecated ERC 20 mirror, follow the official swap guidance and never send mirror tokens to a native mainnet address.
-
----
-
-## 13. Verification
-
-- MEFAI onchain analysis: a direct Ethereum read of the deprecated CTXC mirror `0xea11755ae41d889ceec39a63e6ff75a02bc1c00d` (identity Cortex Coin, 18 decimals, total supply 299,792,458 equal to the hard cap, no mint module, empty implementation slot so non proxy, pausable by an externally owned account and currently not paused, no transfer fee).
-- Market checks: CoinGecko for CTXC price near 0.0008 dollars, market capitalization around 186,000 dollars, daily volume near 50,000 dollars, circulating supply about 238,000,000, and the note that trading has stopped on all listed exchanges; public reporting of delistings by OKX (June 2025), ONUS (April 2025), and Bithumb.
-- Product and code checks: live fetch of www.cortexlabs.ai (CVM, Synapse, and ZkMatrix positioning, 2018 to 2023 copyright), repeated unreachable fetches of the explorer cerebro.cortexlabs.ai, the CortexFoundation GitHub organization showing core client maintenance into 2026, and public mining data showing the chain still producing roughly 4,800 blocks per day at a hashrate around 862 Gps in mid 2026.
-- Frontend integrity: the homepage is a static marketing site with no wallet integration, no addresses, no obfuscated or external crypto scripts, no fabricated audit badges, and no scam vectors, reading as clean and low risk for end users.
+**Report Date:** 2026-08-05
+**Website:** https://mefai.io

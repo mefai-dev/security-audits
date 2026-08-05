@@ -1,200 +1,349 @@
-# Security Audit Report: Heurist (HEU) on Ethereum
+# Heurist (HEU): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 70/100, MEDIUM RISK**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | Heurist |
-| **Token Symbol** | HEU |
-| **Contract (Ethereum)** | `0xec463D00aa4dA76fb112cD2e4AC1C6BeF02da6ea` |
-| **Chain** | Ethereum ERC 20 (canonical origin; primary trading on a Base bridged mirror `0xEF22cb48B8483dF6152e1423b19dF5553BbD818b`) |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **70/100** |
-| **Overall Risk** | **MEDIUM** |
-| **Verdict** | **Passed** |
+**Date:** 2026-08-05
+**Token:** HEU (ERC20, 18 decimals, maximum supply 1,000,000,000, canonical on Ethereum mainnet 0xec463D00aa4dA76fb112cD2e4AC1C6BeF02da6ea; bridged copies on ZKsync Era and Base)
+**Networks referenced by the code:** Ethereum mainnet (token), ZKsync Era Sepolia testnet (miner identity registry), Base (staking and payment)
+**Websites:** heurist.ai, docs.heurist.ai
+**GitHub:** github.com/heurist-network
+
+---
+
+## Severity Summary
+
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| High | 2 |
+| Medium | 3 |
+| Low | 1 |
+| Informational | 2 |
+
+---
+
+## Why This Report Exists
+
+Most of the projects we review sell a security story that their own code contradicts. Heurist is a more honest subject than most. There are no `if true` bypasses, no private keys checked into the repository, no fake cryptography. The open source miner genuinely loads real models onto real GPUs and serves inference. The purpose here is the same discipline applied fairly. We read the actual public source, claim by claim, credit what the code truly delivers, and flag where the word "decentralized" in the marketing runs ahead of an architecture that is, in practice, a central coordinator with off chain accounting and a token controlled by one key.
+
+We are not making accusations. We are not spreading FUD. We read the source and show what is actually implemented.
+
+## Method
+
+For every major marketing and documentation claim we located the relevant code in the public repository (heurist-network/miner-release), fetched raw files from GitHub, read the deployed HEU token source, and queried the live token contract over a public Ethereum RPC. Each claim below is labelled CONFIRMED IN CODE, OVERSTATED, or FALSE, with a file, line, and a short verbatim snippet. Note at the outset which code is public: only the miner client is open source. The two components that actually run the network, the job dispatcher named in the config as the "sequencer" and the LLM gateway, are closed source and were not available to read.
+
+---
+
+## The Foundation: A Real Compute Network Under a Central Coordinator
+
+**CLAIM:**
+> Heurist is a decentralized AI inference network where independent GPU miners serve image and LLM models.
+
+**REALITY:** Half confirmed, half overstated, and best stated plainly up front. The miners are real and independent (Claim 1). The network that coordinates them is not decentralized: every job is requested from, and every result is submitted to, a single central server that the project's own configuration calls the sequencer, over plain HTTP. Image outputs are uploaded to a Heurist owned Amazon S3 bucket. There is no peer to peer job market, no on chain job book, and no on chain settlement in the loop.
+
+**EVIDENCE:**
+```toml
+# miner-release/config.toml:1-4,17
+[service]
+base_url = "http://sequencer.heurist.xyz"
+llm_url  = "http://localhost"
+signal_url = "https://d2k7cjzmjgpm6p.cloudfront.net/prod"
+# [storage]
+s3_bucket = 'heurist-images'
+```
+```python
+# miner-release/llm_mining_core/utils/requests_utils.py:38,56
+url = f"{config.base_url}/miner_request"          # ask the central sequencer for a job
+response = config.session.post(url, json=request_data)
+```
+Repository enumeration of the heurist-network organization returns miner-release but no `sequencer`, `heurist-gateway`, or `llm-gateway` repository. The orchestrator is not public.
+
+**IMPACT:** The physical compute is genuinely distributed across independent operators, which is real and creditable. The control plane is a single operator run server. This is a centrally orchestrated distributed compute pool, which is materially different from the trustless, decentralized network the marketing implies. Informational at the foundation level; the specific consequences are scored in the claims below.
+
+---
+
+## Claim 1: GPU miners actually run image and LLM models on independent hardware
+
+**CLAIM:**
+> "Contribute your GPU to perform AI inference tasks on the Heurist network." Miners host Stable Diffusion and Large Language Models.
+
+**REALITY:** CONFIRMED IN CODE. This is the strongest and most honest part of the project. The LLM miner launches a real vLLM OpenAI compatible inference server against a Hugging Face model on the operator's own GPU, then runs genuine chat completions. The image miner loads Stable Diffusion and Flux pipelines and generates images. Nothing about the inference is faked or stubbed.
+
+**EVIDENCE:**
+```python
+# miner-release/llm_mining_core/config/server.py:31-42  start_llm_server()
+cmd = [
+    "python", "-m", "vllm.entrypoints.openai.api_server",
+    "--model", self.model_id,
+    "--served-model-name", self.served_model_name,
+    "--tensor-parallel-size", str(self.num_gpus),
+    "--gpu-memory-utilization", self.gpu_memory_util,
+]
+self.process = subprocess.Popen(cmd)
+```
+```python
+# miner-release/llm-miner.py:153-166  real inference against the local vLLM server
+response = client.chat.completions.create(**params)
+chat_completion = ChatCompletion(**response.model_dump())
+total_tokens = response.usage.total_tokens
+```
+```python
+# miner-release/sd_mining_core/utils/request_utils.py:53  real diffusion inference
+image_data, inference_latency, loading_latency = execute_model(
+    config, job['model_id'], job['model_input']['SD']['prompt'], ... )
+```
+
+**IMPACT:** Positive. Operators run their own hardware, pull their own model weights, and produce real inference output. The load bearing claim that this is a working GPU compute network is true. Informational.
+
+---
+
+## Claim 2: It is a decentralized inference network
+
+**CLAIM:**
+> Credits "are used to access Heurist's decentralized AI compute resources." The network is decentralized.
+
+**REALITY:** OVERSTATED. Independent workers do the compute, but the entire task lifecycle is mediated by one central sequencer. The miner polls the sequencer for a job, the sequencer supplies the full model input (prompt, temperature, seed, max tokens), the miner returns the result to the sequencer, and image results are pushed to a Heurist owned S3 bucket using temporary AWS credentials handed down for the job. The worker never talks to an end user and never touches a decentralized ledger during the job. If the round trip is slow the miner is simply told it earned nothing, by the same central server.
+
+**EVIDENCE:**
+```python
+# miner-release/llm-miner.py:210-221  the sequencer assigns work and its parameters
+job, request_latency = send_miner_request(base_config, miner_id, base_config.served_model_name)
+prompt      = job['model_input']['LLM']['prompt']
+temperature = job['model_input']['LLM']['temperature']
+```
+```python
+# miner-release/sd_mining_core/utils/request_utils.py:48-57,84  result to S3 + central endpoint
+s3 = boto3.client('s3', aws_access_key_id=temp_credentials[0], ... )
+upload_image_to_s3(s3, image_data, config.s3_bucket, s3_key)   # bucket 'heurist-images'
+response = requests.post(config.base_url + "/miner_submit", json=result)
+```
+```python
+# miner-release/llm-miner.py:252  reward verdict comes from the central server
+"Warning: the previous request timed out. You will not earn points."
+```
+
+**IMPACT:** The compute is distributed; the coordination, the data path, and the accept or reject decision are centralized in one server reached over unencrypted HTTP. "Decentralized AI compute" is accurate about the GPUs and overstated about the network that runs them. Medium.
+
+---
+
+## Claim 3: An OpenAI compatible LLM gateway serving decentralized LLMs
+
+**CLAIM:**
+> "Heurist LLM Gateway ... fully compatible with the OpenAI SDK, allowing you to use the same familiar interface to interact with decentralized LLMs." "Decentralized AI at Low Cost." Replace the base URL with `https://llm-gateway.heurist.xyz`.
+
+**REALITY:** OVERSTATED. The OpenAI compatibility is real and useful, and worth crediting: a caller points the OpenAI SDK at one Heurist URL and gets streaming chat completions back. But the gateway is a central reverse proxy, not a decentralized endpoint. Traffic flows user to the Heurist gateway to the Heurist sequencer to a miner and back. The miner even streams tokens back to the sequencer, not to the caller. The gateway and sequencer code that perform routing, authentication, metering, and payment are closed source, so the "decentralized" part of this claim cannot be verified and the observable design is a single branded proxy.
+
+**EVIDENCE:**
+```python
+# miner-release/llm-miner.py:118-123  miner streams the answer back to the sequencer
+response = session.post(
+    f"{base_config.base_url}/miner_submit_stream",
+    headers={'job_id': str(job_id), 'miner_id': str(miner_id), ...},
+    data=generate_data(stream), stream=True)
+```
+```toml
+# miner-release/config.toml:2   the only "gateway" the miner knows is the central sequencer
+base_url = "http://sequencer.heurist.xyz"
+```
+Docs, llm-gateway/introduction.md:9,13-14: single ingress `https://llm-gateway.heurist.xyz`, marketed as "decentralized LLMs" and "Decentralized AI at Low Cost." No gateway source is published in the org.
+
+**IMPACT:** Users get a real OpenAI drop in, backed by a real fleet of GPUs, but they are trusting one company's proxy for routing, billing, and the integrity of the returned completion. "Decentralized LLMs" describes the supply side, not the endpoint the user actually calls. Medium.
+
+---
+
+## Claim 4: HEU pays for inference and rewards miners on chain
+
+**CLAIM:**
+> HEU is used to "Pay for AI services" and to reward miners; the network settles inference in HEU. Documentation tells miners "we are tracking your rewards behind the scenes."
+
+**REALITY:** FALSE as an on chain settlement claim. Nothing in the miner pays HEU, transfers a token, or settles a job on any chain. Rewards are off chain points computed by the central sequencer and shown on a web portal. The historical HEU that miners received was distributed as two one time snapshot airdrops (Phase 1 fifty million, Phase 2 ten million), and the documentation now states plainly that mining is over. The only blockchain the miner touches during operation is a ZKsync Era Sepolia testnet contract used purely to read an identity binding (Claim 5); that contract's ABI contains no payment, reward, escrow, or settlement function at all.
+
+**EVIDENCE:**
+```toml
+# miner-release/config.toml:74-76   the sole on chain contract the miner uses is on a TESTNET
+[contract]
+rpc = "https://sepolia.era.zksync.dev/"
+address = "0x7798de1aE119b76037299F9B063e39760D530C10"
+```
+```
+# auth/abi.json  full function set (ERC-721 identity registry, no value transfer of HEU):
+bind(address,address), mintAndBind(address,address), identityAddress(address),
+rewardAddress(address), tokenURI, ownerOf, transferFrom, owner ...
+# there is no pay(), settle(), claimRewards(), or HEU transfer anywhere in the miner
+```
+```md
+# docs/protocol-overview/tokenomics.md:39-43
+Phase 1: 50M HEU airdropped ... snapshot ... July 19th, 2024
+Phase 2: 10M HEU airdropped ...
+Mining is no longer available. Stay tuned for future reward opportunities.
+```
+
+**IMPACT:** The phrase "HEU pays for inference and rewards miners" describes an off chain points ledger operated by Heurist plus discretionary token airdrops that have already ended, not a protocol that settles inference in HEU on a blockchain. A miner's earnings depend entirely on trusting the central sequencer's private accounting. This is the single largest gap between the token utility narrative and the code. High.
+
+---
+
+## Claim 5: Miner identity and authentication are secured on chain
+
+**CLAIM:**
+> Miner identity is bound on chain; work is cryptographically attributed to a reward wallet.
+
+**REALITY:** OVERSTATED. There is a genuine on chain identity registry, and cryptographic signing is genuine, but two caveats matter. First, the registry the miner reads and the documentation tells operators to write to is deployed on ZKsync Era Sepolia, a testnet, not on any mainnet. Second, the per submission signature (a personal_sign over `rewardwallet-hourlytimestamp`) is verified off chain by the same central sequencer that pays the rewards; the chain is used to look up a binding, not to verify or settle anything. The identity wallet is explicitly described in code as authentication only.
+
+**EVIDENCE:**
+```python
+# miner-release/auth/generator.py:50-51,161-165  on chain read + off chain signature
+def fetch_iw_address(self, rw_address):
+    return self.contract.functions.identityAddress(Web3.to_checksum_address(rw_address)).call()
+message = f"{reward_wallet}-{hourly_time}"                 # signed with the identity key
+signature = self.w3.eth.account.sign_message(encode_defunct(text=message), private_key=private_key)
+```
+```python
+# miner-release/auth/generator.py:38  the on chain identity wallet is auth only
+"... The identity wallet is used for authentication only. DO NOT deposit funds into the identity wallet."
+```
+```python
+# miner-release/auth/generator.py:187  operators are pointed at the ZKsync testnet contract
+"https://zksync.explorer/0x7798de1aE119b76037299F9B063e39760D530C10/writeContract"
+```
+
+**IMPACT:** The identity model is real and reasonable, but "secured on chain" is generous for a binding registry on a public testnet whose signatures are trusted and settled by a central server. It authenticates who a miner is; it does not decentralize trust in the reward accounting. Medium.
+
+---
+
+## Claim 6: HEU has a fixed maximum supply of one billion
+
+**CLAIM:**
+> "The maximum supply is 1,000,000,000." HEU is a fixed supply asset.
+
+**REALITY:** CONFIRMED IN CODE. The deployed Ethereum token enforces a hard cap of one billion units and the cap is already fully minted, so no further inflation is possible without first reducing supply. Live reads of the contract confirm the numbers exactly.
+
+**EVIDENCE:**
+```solidity
+// HEU.sol (verified source, Ethereum 0xec463D...da6ea)
+uint256 public constant MAXIMUM_SUPPLY = 1_000_000_000e18;
+function mint(address recipient, uint256 amount) external onlyOwner {
+    if (totalSupply() + amount > MAXIMUM_SUPPLY) revert HEU__CanNotExceedMaximumSupply();
+    _mint(recipient, amount);
+}
+constructor() ERC20("Heurist", "HEU") Ownable(msg.sender) {}
+```
+```
+# live eth_call on mainnet
+name()        = "Heurist"
+symbol()      = "HEU"
+decimals()    = 18
+totalSupply() = 1,000,000,000e18   (0x033b2e3c9fd0803ce8000000)  == MAXIMUM_SUPPLY  -> mint exhausted
+```
+
+**IMPACT:** Positive. The fixed supply claim is true and the mint is exhausted at the cap. There is no live inflation path today. Informational.
+
+---
+
+## Claim 7: HEU secures a decentralized protocol
+
+**CLAIM:**
+> HEU is used to "Stake to secure the network," "Vote on governance decisions," and the protocol is decentralized.
+
+**REALITY:** OVERSTATED. The token is administered by a single externally owned account. The mint function is onlyOwner, ownership is transferable, and, notably, the standard escape hatch is disabled: renounceOwnership is overridden to revert, so control can never be relinquished to nobody. The owner address holds no contract code, confirming it is a plain private key rather than a multisig or timelock. Staking rewards advertised as "50% APR from protocol emissions" cannot come from minting, because the cap is exhausted (Claim 6); they are paid from a pre minted allocation held and released centrally.
+
+**EVIDENCE:**
+```solidity
+// HEU.sol  ownership cannot be renounced; owner is a single key
+function renounceOwnership() public view override onlyOwner { revert HEU__RenounceOwnershipIsNotAllowed(); }
+```
+```
+# live checks
+owner()                              = 0xfB93bEE230a72a241534F70d85b76E07f35cd33f
+eth_getCode(0xfB93bEE2...cd33f)      = 0x            -> externally owned account, not a contract
+```
+```md
+# docs/protocol-overview/tokenomics.md:47-53 ; stake.md:17
+Base rewards: 50% APR from protocol emissions ; auto-compounding stHEU ; 30-day unstake lockup
+```
+
+**IMPACT:** No live inflation is a genuine positive, but "secure the network" and "governance" sit on top of a token whose administrative key belongs to one account that can never renounce control and that hand distributes the staking and mining allocation. The security and governance narrative is centralized in practice. High.
+
+---
+
+## Claim 8: Heurist Chain is a live ZK Layer 2 and HEU is its gas token
+
+**CLAIM:**
+> "Heurist Chain: Our ZK Layer 2 infrastructure powers the payment rails for autonomous AI systems." HEU serves "as the gas token for transactions in the Heurist Chain."
+
+**REALITY:** OVERSTATED and forward looking. Nothing in the public source demonstrates a live Heurist Chain L2 or HEU functioning as its gas token. The only chain the miner code interacts with is a ZKsync Era Sepolia testnet. Payment and staking contracts referenced in the docs live on Base and other existing chains, not on a Heurist operated L2. The L2 as a payment rail is presented in the present tense in marketing while the reviewable code treats it as testnet stage or unbuilt.
+
+**EVIDENCE:**
+```md
+# docs/introduction.md:21
+Heurist Chain: Our ZK Layer 2 infrastructure powers the payment rails for autonomous AI systems.
+# docs/protocol-overview/tokenomics.md:9 (utility) : "gas token for transactions in the Heurist Chain"
+```
+```toml
+# miner-release/config.toml:75  the only chain the code actually points at is a testnet
+rpc = "https://sepolia.era.zksync.dev/"
+```
+
+**IMPACT:** A reasonable roadmap item stated as a shipped product. Anyone reading "gas token for the Heurist Chain" should understand it as aspirational relative to the code available today. Low.
+
+---
+
+## Additional Note: the trust critical components are closed source
+
+Worth stating plainly because it underlies Claims 2, 3, and 4. The miner client is fully open, but the sequencer that dispatches every job and computes every reward, and the gateway that fronts every user request, are not published in the heurist-network organization. The economic heart of the system, who gets which job and who is credited how much HEU, runs in code no one outside Heurist can read. The open miner tells us the workers are honest machinery; it does not let anyone verify the accounting that pays them.
+
+---
+
+## Conclusion
+
+Heurist is a real and comparatively honest project. The miner genuinely runs Stable Diffusion, Flux, and vLLM served LLMs on independent operator GPUs (Claim 1), the OpenAI compatible gateway is a real drop in (Claim 3), and HEU is a genuine fixed supply asset whose mint is exhausted at one billion (Claim 6). There are no planted bypasses, no leaked keys, and no faked cryptography. That is why this scores well above the projects whose code contradicts their whitepaper.
+
+The overstatements are all variations on one theme: the marketing word "decentralized" describes a system whose control plane is centralized. Every job is dispatched and every reward is decided by a single central sequencer reached over plain HTTP, with image results parked in a Heurist S3 bucket (Claim 2). The user facing gateway is a single branded proxy (Claim 3). "HEU pays for inference and rewards miners" is, in the code, an off chain points ledger plus two already finished airdrops, with the only in loop blockchain being a testnet identity registry that has no payment function at all (Claim 4, the most serious gap, and mining is now discontinued). Miner identity is bound on a testnet and verified off chain (Claim 5). The token, while non inflationary today, is owned by a single externally owned account that can never renounce control (Claim 7), and the advertised ZK Layer 2 gas token is not evidenced in the reviewable code (Claim 8). Finally, the two components that actually run the network are closed source, so the accounting cannot be independently audited.
+
+None of this is fraud. It is the difference between a working, distributed GPU compute product with a centralized coordinator and off chain settlement, and the trustless decentralized network the branding implies. Score 70 out of 100, MEDIUM RISK, driven by centralization of the control plane, off chain reward accounting, a single key token owner, and closed source orchestration, not by any dishonest or broken code.
+
+| Claim | Verdict |
+|-------|---------|
+| GPU miners run real image and LLM models on independent hardware | CONFIRMED IN CODE |
+| It is a decentralized inference network | OVERSTATED (central sequencer dispatch, S3, off chain accept or reject) |
+| OpenAI compatible gateway serving decentralized LLMs | OVERSTATED (real OpenAI drop in, but a central proxy; orchestrator closed source) |
+| HEU pays for inference and rewards miners on chain | FALSE (off chain points, finished airdrops, testnet identity registry only) |
+| Miner identity and auth are secured on chain | OVERSTATED (real registry, but on a testnet and verified off chain) |
+| HEU fixed maximum supply of one billion | CONFIRMED IN CODE (mint exhausted at cap) |
+| HEU secures a decentralized protocol | OVERSTATED (single permanent EOA owner, onlyOwner mint) |
+| Heurist Chain live ZK L2 with HEU gas token | OVERSTATED (aspirational; only a testnet in code) |
+
+Tally: CONFIRMED IN CODE 2, OVERSTATED 5, FALSE 1.
+
+---
+
+## Verification and Sources (exact files read)
+
+Miner client (heurist-network/miner-release, branch main):
+- config.toml (base_url sequencer.heurist.xyz, signal_url CloudFront, s3_bucket heurist-images, [contract] ZKsync Sepolia 0x7798...)
+- llm-miner.py (worker loop, send_miner_request, chat.completions.create, /miner_submit and /miner_submit_stream, signature attach)
+- llm_mining_core/config/server.py (start_llm_server -> vllm.entrypoints.openai.api_server, health_check)
+- llm_mining_core/config/base.py (base_url, signal_url, session)
+- llm_mining_core/utils/requests_utils.py (send_miner_request -> /miner_request, send_model_info_signal -> /miner_signal)
+- sd-miner.py, sd_mining_core/base/config.py, sd_mining_core/utils/request_utils.py (S3 upload via boto3, submit_job_result -> /miner_submit, "you will not earn points")
+- auth/generator.py (local seed phrase identity wallet, identityAddress read, personal_sign of rewardwallet-hourlytimestamp, "authentication only", ZKsync testnet bind instructions)
+- auth/abi.json (ERC-721 identity registry: bind, mintAndBind, identityAddress, rewardAddress; no payment or settlement function)
+
+Token (Ethereum mainnet 0xec463D00aa4dA76fb112cD2e4AC1C6BeF02da6ea):
+- verified HEU.sol source (MAXIMUM_SUPPLY 1_000_000_000e18, mint onlyOwner, Ownable(msg.sender), renounceOwnership reverts)
+- live eth_call reads: name "Heurist", symbol "HEU", decimals 18, totalSupply == MAXIMUM_SUPPLY, owner 0xfB93bEE230a72a241534F70d85b76E07f35cd33f, eth_getCode of owner = 0x (externally owned account)
+
+Documentation (docs.heurist.ai):
+- introduction.md (Heurist Chain ZK L2 payment rails)
+- llm-gateway/introduction.md (OpenAI compatible, "decentralized LLMs", llm-gateway.heurist.xyz)
+- protocol-overview/tokenomics.md (utilities, distribution, Phase 1 and Phase 2 airdrops, "Mining is no longer available", 50% APR emissions)
+- protocol-overview/stake.md, credits.md ("decentralized AI compute resources"), contract-addresses.md (HEU on ETH, ZKsync, Base; staking and payment on Base and others)
+
+Repository enumeration: heurist-network organization public repos include miner-release; no public sequencer, heurist-gateway, or llm-gateway repository was found.
 
 ---
 
 ## Disclaimer
 
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
+This report documents the relationship between Heurist's public marketing and documentation claims and its publicly available open source code and deployed contracts. All findings are based on source read from the heurist-network GitHub organization, the verified HEU token source, the project documentation, and read only calls to a public Ethereum RPC node. Heurist is a genuine, working project; this review credits what the code delivers and flags where the marketing language runs ahead of the implementation. Read only review; no systems were accessed or modified.
 
----
-
-## Executive Summary
-
-Heurist markets itself as full stack AI infrastructure for the onchain economy, spanning decentralized inference, a GPU mining DePIN, image generation, an LLM gateway, and an emerging agent economy. Unlike many projects that sell a story ahead of a product, the audit finds that Heurist's core products are genuinely live and its token contract is clean and conservative. The reservations are about traction and token economics rather than about broken software or a dangerous contract.
-
-1. **The core products are real and usable.** The Imagine image and video generator, the OpenAI SDK compatible LLM gateway, and the open source GPU miner software are all live and actively maintained, not slideware. The marketing describes products that a visitor can actually reach and use.
-2. **The token is a clean, hard capped ERC 20 with its mint already exhausted.** MEFAI's onchain read confirms a verified OpenZeppelin ERC 20 with a MAXIMUM_SUPPLY constant of 1,000,000,000 HEU, a live total supply already equal to that cap, no proxy, no pause, no blacklist, and no transfer fee. No new tokens can be minted.
-3. **Headline traction numbers are not independently verifiable.** Claims of over 13,000 GPU miners, over 1 billion inference requests, and over 30 hosted models recur across the marketing and blog but have no live public stats endpoint to confirm them, so they read as marketing snapshots rather than auditable metrics.
-4. **Token utility is designed but economically thin.** Staking and payment mechanics are genuinely wired in, yet the market cap sits in the low hundreds of thousands of dollars with daily volume in the low thousands, so real demand is modest. Ownership also rests with a single external account rather than a multisig, though its mint power is already spent.
-
-The contract is not a scam and the products are not vaporware. As a project, Heurist ships more than it claims to on the product side, while its traction narrative runs ahead of what is publicly provable and its token has a small real footprint. This lands Heurist at 70 out of 100, Passed, at MEDIUM overall risk.
-
----
-
-## 1. Token Overview
-
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | Heurist / HEU |
-| **Contract (Ethereum)** | `0xec463D00aa4dA76fb112cD2e4AC1C6BeF02da6ea` |
-| **Decimals** | 18 |
-| **Max supply** | 1,000,000,000 HEU (hard cap, equal to the onchain MAXIMUM_SUPPLY constant and to the live total supply) |
-| **Circulating** | About 199.5 million HEU per CoinGecko; the Base bridged mirror reads about 193.1 million |
-| **Structure** | Canonical origin on Ethereum; official bridged mirrors on Base (the main trading and protocol home) and ZKsync Era |
-| **Contract controls** | Ownable ERC 20; a single external account holds the owner role; mint is capped and already exhausted; non upgradeable |
-
----
-
-## 2. On chain Security Assessment (MEFAI analysis)
-
-MEFAI's direct read of the HEU contract on Ethereum returned:
-
-| Check | Result |
-|-------|--------|
-| Token identity | Heurist, HEU, 18 decimals, verified source |
-| Max supply | 1,000,000,000 HEU, equal to the MAXIMUM_SUPPLY constant |
-| Live total supply | Exactly 1,000,000,000 HEU, already at the cap |
-| Mint authority | `mint(address,uint256)` is onlyOwner but reverts once totalSupply plus amount exceeds MAXIMUM_SUPPLY; supply is at the cap, so no further mint is possible |
-| Owner | A single external account `0xfb93bee230a72a241534f70d85b76e07f35cd33f` with no bytecode (a single key, not a multisig); not renounced |
-| Upgradeable | No, the contract is not a proxy; standard proxy and admin storage slots are empty |
-| Pause / blacklist / fee | None; plain OpenZeppelin ERC 20 |
-
-**Interpretation.** At the contract level HEU is strong. It is a verified, hard capped, non upgradeable ERC 20 with no pause, no blacklist, and no transfer fee, and its mint function can no longer produce tokens because the live supply already equals the hard cap. Staking and mining rewards are paid from the pre minted allocation, not from new inflation, and mining has ended. The one residual contract concern is that ownership sits with a single external account that has not renounced, rather than a multisig. Because the mint is exhausted and there is no pause, blacklist, or upgrade path, the practical power of that key is limited, so it is a caution rather than a red flag. The Base mirror is a standard OptimismMintableERC20 whose `l1Token()` points back to the Ethereum HEU and whose `bridge()` is the canonical Base Standard Bridge `0x4200000000000000000000000000000000000010`, minting only against collateral locked on Ethereum. The substantive questions for this project sit at the traction and token economics level below, not in the token contract.
-
----
-
-## 3. Claim vs Reality: "Full stack AI infrastructure for onchain economy"
-
-> Site: Heurist presents itself as full stack AI infrastructure for the onchain economy, decentralized, composable, compliant, and permissionless, with decentralized computing, image and video generation, an LLM gateway, GPU mining, and an agent marketplace.
-
-**Reality: the core products are genuinely live.** This is the strongest part of Heurist. MEFAI confirmed that Imagine at imagine.heurist.ai is a working image and video generator exposing FLUX, Stable Diffusion, Veo 3, and Hunyuan models with a connect wallet flow and pay as you go credits. The LLM gateway is operational, is OpenAI SDK compatible, and is documented with an API token and a model list. The GPU miner is a real, actively maintained open source repository with Docker support and more than 170 commits, allowing contributors to add NVIDIA GPUs. Newer surfaces such as Heurist Mesh, the agent framework, Ask Heurist, and the x402 facilitator are documented and reflect a shift toward an agent economy. A visitor following the marketing reaches products that actually work, which is the opposite of the aspirational branding many projects rely on.
-
----
-
-## 4. Claim vs Reality: "Fixed supply, 1 billion maximum"
-
-> Site: The tokenomics describe a fixed 1 billion HEU supply split across mining and staking, treasury, team, and investors, with mining now ended and staking rewards paid from the pre minted allocation.
-
-**Reality: confirmed onchain.** MEFAI's read shows the MAXIMUM_SUPPLY constant equals 1,000,000,000 HEU and the live total supply already equals it, so the mint function reverts and no new tokens can be created. Rewards are distributed from the already minted allocation rather than from inflation beyond the cap. This is a case where the marketing claim and the onchain reality match exactly, and it is a meaningful positive for a DePIN token whose value depends on a credible supply schedule.
-
----
-
-## 5. Claim vs Reality: Traction numbers
-
-> Site: Heurist and its blog repeat headline traction of over 13,000 GPU miners, over 1 billion AI inference requests, over 30 hosted models, and hundreds of developers.
-
-**Reality: consistent in the marketing, but not independently verifiable.** These figures appear across the token announcement, Medium posts, and third party writeups, but MEFAI found no live public dashboard or stats endpoint that independently confirms the current miner count or request volume, so they read as marketing snapshots rather than auditable metrics. The homepage itself shows no live counters to confirm or fabricate. Coin listing descriptions also state that compute is aggregated from trusted DePIN partners, which suggests reliance on partner data centers alongside individual miners and slightly tempers the pure permissionless miner framing. The working products make the claims plausible, but the specific large numbers remain unproven, and a security minded reader should treat them as directional rather than settled.
-
----
-
-## 6. Claim vs Reality: HEU utility and token economics
-
-> Site: HEU is described as the asset that powers staking, mining rewards up to around 50 percent APR, and payment for API and compute access, with staking discounts.
-
-**Reality: real mechanics, thin economics.** HEU has designed utility rather than pure decoration. Miner nodes must stake a minimum of 10,000 HEU or esHEU to earn, staking pays a base rate around 50 percent APR plus a share of protocol revenue and sequencer fees, and HEU or credits pay for API and compute access. These mechanics are live through the stake page and the credits system, and the emissions are paid from the already minted mining and staking bucket rather than from new inflation. The caveat is the size of the economy around them. The market cap sits roughly in the low hundreds of thousands of dollars, daily volume is in the low thousands, and the price has fallen about 55 percent over the reviewed week. The utility is real, but usage driven demand is modest and trading is thin and largely speculative, so the token's economic footprint is much smaller than the breadth of the product suite implies.
-
----
-
-## 7. Claim vs Reality: "Decentralized" and multichain HEU
-
-> Site: Heurist markets decentralized computing and a multichain HEU available across networks.
-
-**Reality: broadly accurate, with normal bridge and aggregation caveats.** The canonical token lives on Ethereum, and the tradeable market and protocol home is Base, reached through the official Base Standard Bridge, with a further mirror on ZKsync Era. MEFAI verified that the Base mirror is a standard bridged representation backed by collateral locked on Ethereum, which is the expected and legitimate design, and MEFAI's frontend review found no lookalike or drainer addresses on the site. The two honest qualifications are that most tradeable supply lives on bridged mirrors, which adds the usual bridge trust assumptions even with the official bridge, and that compute is aggregated from trusted DePIN partners alongside independent miners, so the network is decentralized in design but partly partner served in practice.
-
----
-
-## 8. Claim vs Reality: "Compliant" positioning versus "fully uncensored" Imagine
-
-> Site: The homepage headline positions Heurist as decentralized, composable, compliant, and permissionless, while the Imagine product markets itself as fully uncensored with no limits.
-
-**Reality: an internal tension worth noting.** A sitewide claim of compliance sits awkwardly next to a flagship image product advertised as fully uncensored. This is not a contract risk and not evidence of misconduct, but it is a transparency and positioning inconsistency that a reviewer should flag, because compliant and fully uncensored are not usually simultaneously true of the same content pipeline. The honest read is that Heurist is permissionless first, and the compliance language is aspirational framing rather than a demonstrated control.
-
----
-
-## 9. Positive Findings (Credited)
-
-- The core products are genuinely live and usable: Imagine image and video generation, an OpenAI SDK compatible LLM gateway, and an actively maintained open source GPU miner.
-- The token contract is a verified, hard capped, non upgradeable OpenZeppelin ERC 20 with no pause, no blacklist, and no transfer fee.
-- The mint is already exhausted because the live total supply equals the 1,000,000,000 HEU cap, so no inflation is possible and rewards come from the pre minted allocation.
-- HEU has real, wired in utility (staking to mine, protocol revenue share, and payment for compute), not decorative tokenomics.
-- The Base mirror uses the canonical Base Standard Bridge and is collateral backed, and MEFAI's frontend review found the marketing site clean, with no wallet or signature surface and no lookalike addresses.
-
----
-
-## 10. Findings by Severity
-
-| ID | Severity | Finding |
-|----|----------|---------|
-| HEU 001 | **MEDIUM** | Headline traction numbers (over 13,000 miners, over 1 billion inference requests, over 30 models) are repeated across marketing but have no live public stats endpoint to confirm them. |
-| HEU 002 | **MEDIUM** | Token economics are thin: market cap in the low hundreds of thousands of dollars, daily volume in the low thousands, and about a 55 percent weekly price decline, despite genuine utility design. |
-| HEU 003 | **LOW** | The Ownable ERC 20 is owned by a single external account that has not renounced, though mint is hard capped and supply is already at the cap, so no inflation is possible. |
-| HEU 004 | **LOW** | Most tradeable supply lives on Base and ZKsync as bridged mirrors, adding bridge trust assumptions even though the official Base Standard Bridge is used. |
-| HEU 005 | **LOW** | Compute is aggregated from trusted DePIN partners alongside individual miners, which softens the pure permissionless decentralized framing. |
-| HEU 006 | **LOW** | The sitewide compliant positioning is in tension with Imagine marketing itself as fully uncensored with no limits. |
-| HEU 007 | **INFO** | Verified OpenZeppelin ERC 20, immutable with no proxy, no pause, no blacklist, no fee on transfer, and a hard capped 1 billion supply with mint reverting at the cap (positive). |
-
----
-
-## 11. Risk Matrix
-
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified, hard capped, no transfer fee, standard OpenZeppelin ERC 20 |
-| Supply / minting | Low risk | Live supply already equals the cap; mint reverts; no inflation possible |
-| Product reality | Low risk | Imagine, LLM gateway, and GPU miner are genuinely live and usable |
-| Traction | Medium risk | Headline metrics unverifiable via any public dashboard |
-| Token economics | Medium risk | Very small market cap and thin volume despite real utility design |
-| Ownership / bridges | Medium risk | Single external owner (mint exhausted) and tradeable supply on bridged mirrors |
-| Transparency | Medium risk | Unverifiable numbers, partner aggregated compute, uncensored versus compliant tension |
-
----
-
-## 12. Technical Specifications
-
-| Item | Value |
-|------|-------|
-| Contract (Ethereum) | `0xec463D00aa4dA76fb112cD2e4AC1C6BeF02da6ea` |
-| Base mirror | `0xEF22cb48B8483dF6152e1423b19dF5553BbD818b` (OptimismMintableERC20, collateral backed) |
-| Decimals | 18 |
-| Max supply | 1,000,000,000 HEU (hard cap, equal to the live total supply) |
-| Upgradeable | No (not a proxy) |
-| Mint | onlyOwner, reverts once supply reaches MAXIMUM_SUPPLY; already exhausted |
-| Owner | Single external account `0xfb93bee230a72a241534f70d85b76e07f35cd33f`, not renounced |
-| Pause / blacklist / fee | None |
-| Bridges | Official Base Standard Bridge `0x4200000000000000000000000000000000000010`; ZKsync Era mirror |
-
----
-
-## 13. Conclusion
-
-Heurist is a project whose products are more real than its numbers are provable. The token contract is clean and conservative, a verified, hard capped, non upgradeable ERC 20 whose mint is already exhausted, which keeps contract level risk low. On the product side, Imagine, the LLM gateway, and the GPU miner are genuinely live and usable, so the full stack AI narrative is largely backed by shipped software rather than promises. The reservations that hold Heurist to 70 out of 100 are the traction story and the token economy: the headline figures of thousands of miners and billions of requests cannot be independently confirmed, compute is partly aggregated from trusted partners, the token has a small real footprint with thin volume and a steep recent decline, and ownership still rests with a single external key. None of these is a contract exploit or a broken product. On balance, Heurist earns a Passed verdict at MEDIUM overall risk, with the guidance that its capabilities are credible while its scale should be treated as unverified until backed by public data.
-
----
-
-## 14. Recommendations
-
-**For the Heurist team:**
-- Publish a live public stats endpoint or dashboard for miner count, inference volume, and hosted models, so the headline traction numbers become auditable rather than marketing snapshots.
-- Move the owner key to a multisig or renounce ownership, since the mint is already exhausted and the residual power of the key is small; formalizing this would close the last contract level caution.
-- Reconcile the compliant positioning with the fully uncensored Imagine framing, and be explicit about which compute is permissionless miner served versus partner aggregated.
-- Continue surfacing real onchain protocol revenue and staking metrics to connect the token's designed utility to demonstrable demand.
-
-**For users:**
-- Treat the products as real and usable, but treat the large traction figures as unverified until Heurist publishes live data.
-- Understand that HEU has genuine staking and payment utility but a very small and thin market, so trading is largely speculative today.
-- Note that most tradeable HEU lives on Base and ZKsync as bridged mirrors, and that ownership of the Ethereum contract still sits with a single key, even though its mint power is spent.
-
----
-
-## 15. Verification
-
-- MEFAI onchain analysis: a direct Ethereum read of the HEU contract (identity, 18 decimals, total supply of exactly 1,000,000,000 HEU equal to the MAXIMUM_SUPPLY constant, mint restricted to owner and reverting at the cap, no proxy with empty implementation and admin slots, no pause, no blacklist, no transfer fee, and a single external owner account that has not renounced), plus verification that the Base mirror is a collateral backed OptimismMintableERC20 whose l1Token points to the Ethereum HEU and whose bridge is the canonical Base Standard Bridge.
-- Product checks: live confirmation of Imagine at imagine.heurist.ai (FLUX, Stable Diffusion, Veo 3, Hunyuan, connect wallet, pay as you go credits), the OpenAI SDK compatible LLM gateway, and the actively maintained open source GPU miner repository with more than 170 commits.
-- Frontend review: MEFAI's inspection of the marketing site found no wallet or web3 signature surface, no lookalike or drainer addresses, and only legitimate outbound trading and analytics links.
-- Market and token economics: CoinGecko and CoinMarketCap readings of circulating supply, market cap in the low hundreds of thousands of dollars, daily volume in the low thousands, and about a 55 percent weekly price decline.
-- Project statements: the project's website, documentation, and blog (full stack AI infrastructure positioning, 1 billion fixed supply tokenomics, the over 13,000 miners and over 1 billion inference requests traction claims, staking and payment utility, and the multichain and compliant framing).
+**Report Date:** 2026-08-05
