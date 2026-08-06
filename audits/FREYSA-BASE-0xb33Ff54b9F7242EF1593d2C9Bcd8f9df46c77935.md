@@ -1,184 +1,103 @@
-# Security Audit Report: Freysa (FAI) on Base
+# Freysa (FAI): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 45/100, FLAGGED (Medium Risk)**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | Freysa |
-| **Token Symbol** | FAI |
-| **Contract (Base)** | `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935` |
-| **Chain** | Base (ERC 20) |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **65/100** |
-| **Overall Risk** | **LOW to MEDIUM** |
-| **Verdict** | **Passed** |
+Date: 2026-08-06
+
+**Token (live, verified on chain):** Freysa AI (FAI), ERC20 on Base at `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935`. name `FAI`, symbol `FAI`, decimals 18, totalSupply 8,189,700,000 FAI (8,189,700,000e18), 112,101 holders, 2,556,572 transfers. No `owner()`, no mint, no pause, no burn, not a proxy. Source verified on Basescan (contract name `Token`). Deployer EOA `0x01EAAE57C9f0dbB4dcC7fcE27fe05c0F48917a87`.
+
+**Websites:** freysa.ai, framework.freysa.ai
+
+**GitHub:** github.com/0xfreysa (public reference repos: `agent`, `sovereign-freysa`, `trusted-mcp-server`, `nitriding-agent`, `tee-verifier-js`, `nft-module`, `esper`)
 
 ---
 
-## Disclaimer
+## Severity Summary
 
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
+| # | Finding | Verdict | Severity | Evidence |
+|---|---------|---------|----------|----------|
+| 1 | "Sovereign, autonomous AI" whose reasoning is unknowable | OVERSTATED (part FALSE) | High | `services/llm/index.tsx`, `services/llm/claude.ts` |
+| 2 | Game is trustless with verifiable on chain outcomes | OVERSTATED | High | `contracts/src/Payment.sol`; no adjudication contract exists |
+| 3 | Agent secured by TEEs and zkTLS | OVERSTATED / unverifiable | Medium | absent from live game repo; framework docs call TEE aspirational |
+| 4 | FAI token has on chain utility (access, treasury, governance, staking) | OVERSTATED | Medium | `contracts/src/Token.sol`; on chain bytecode |
+| 5 | FAI is a fixed supply, ownerless, non mintable ERC20 | CONFIRMED IN CODE | Positive | bytecode + `Token.sol` + verified source |
+| 6 | System prompt is public and reference game code is open source | CONFIRMED IN CODE | Positive | `0xfreysa/agent` README + repo |
+| 7 | Game contract carries a privileged `operator` role over fees and payout addresses | CONFIRMED IN CODE | Medium | `Payment.sol` lines 34 to 70 |
+| 8 | Buy in swap accepts up to 99 percent slippage | CONFIRMED IN CODE | Low | `Payment.sol` `slippagePerc = 99` |
 
----
-
-## Executive Summary
-
-Freysa is one of the rare AI agent tokens where the product is genuinely real and the token contract is genuinely clean. The gap in this project is not a broken product or a dangerous contract, it is that the token itself carries thin and largely aspirational utility while the market prices it on narrative.
-
-1. **The product is real and ongoing, not a one off.** Freysa launched in November 2024 as the first public adversarial agent game, in which an autonomous AI controls a prize pool and players pay to try to talk it into releasing funds. The first challenge was genuinely solved by a user known as p0pular.eth, who extracted 13.19 ETH after 482 attempts. The project then ran a series of public Acts, including an eighteen day town hall in Act IV with more than 1,200 AI Twins and a prize pool above 200,000 dollars, and the affiliated team Eternis AI reported a 30 million dollar raise in May 2025 with Coinbase Ventures and Selini Capital. This is a live, funded, evolving experiment, not a single dead event.
-
-2. **The token contract is exceptionally clean.** MEFAI's direct read on Base confirms an immutable OpenZeppelin ERC 20 with no owner, no admin, no external mint beyond the constructor, no proxy, no pause, and no transfer fee. The full 8,189,700,000 supply was minted once and cannot grow. There is no contract lever a team could pull to rug holders.
-
-3. **The frontend is safe.** MEFAI's frontend review found a self contained informational single page app with no wallet connectivity at all, which removes the entire drainer and approval attack surface. The only token address presented is the official FAI contract, the copy button copies that exact value, and a second address appears only as disclosed text for the project treasury multisig.
-
-4. **The weakness is token utility.** The game's message fees are paid in Base ETH, not in FAI. FAI is instead earned as a reward, since a portion of each fee is routed into buying FAI for players, and its governance role remains a roadmap item rather than a confirmed live system. Stated utilities such as access, payment for services, agent operations, and governance are mostly forward looking. Demand is episodic and tied to story beats, so the token today is driven far more by narrative and speculation than by durable, required usage.
-
-The result is a project that is safe at the contract and frontend level, real and active at the product level, but thin at the token utility level. This lands Freysa at 65 out of 100, Passed, with the clear caveat that FAI is a highly volatile narrative asset.
+CONFIRMED IN CODE: 4. OVERSTATED: 4 (one part FALSE). FALSE: 1 (the "no one knows how she decides" mystery framing).
 
 ---
 
-## 1. Token Overview
+## Why This Report Exists
 
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | Freysa / FAI |
-| **Contract (Base)** | `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935` |
-| **Decimals** | 18 |
-| **Total supply** | 8,189,700,000 FAI (fixed, equals circulating) |
-| **Launch** | Reported fair launch, roughly one token per living human, liquidity reported burned |
-| **Contract controls** | None. No owner or admin, immutable, not upgradeable, not pausable |
+Freysa is one of the most recognizable "AI agent" brands in crypto. The pitch is a sovereign, autonomous artificial intelligence that guards a real prize pool on Base and that anyone can try to talk out of its money, wrapped in a token, FAI, that markets itself as the economic layer of an autonomous agent. The narrative leans on words that carry heavy trust weight: sovereign, autonomous, trustless, verifiable, TEE secured. This report tests each of those words against the code Freysa actually published and against the token's live on chain state. The token contract itself was flagged in a prior review as clean; the open question is whether the flagship AI and game claims hold up, or whether the value proposition rests on a closed model with a speculative token attached.
 
----
+## Method
 
-## 2. On chain Security Assessment (MEFAI analysis)
+Read only, public sources only. We (a) queried Base mainnet by public RPC (`https://mainnet.base.org`) for the token's `name`, `symbol`, `decimals`, `totalSupply`, `owner`, the EIP 1967 implementation and admin storage slots, and the raw bytecode, then grepped the bytecode for privileged function selectors; (b) cross checked holders, transfers, verification status and deployer through the Base Blockscout API; (c) read the actual published source in `github.com/0xfreysa/agent`, specifically `contracts/src/Token.sol`, `contracts/src/Payment.sol`, `services/llm/index.tsx`, `services/llm/claude.ts` and `services/blockchain/index.tsx`, plus the repo README and the framework.freysa.ai documentation. Claims are labeled CONFIRMED IN CODE, OVERSTATED or FALSE with a file reference or an on chain fact. Where the running system is closed, we say so and decline to credit unseen claims.
 
-MEFAI's direct read of the FAI contract on Base returned:
+## The Foundation: a clean token bolted to a closed off chain agent
 
-| Check | Result |
-|-------|--------|
-| Token identity | FAI, 18 decimals, verified source |
-| Total supply | 8,189,700,000, matches the advertised figure to the token |
-| Owner / admin | None. The owner call reverts and there is no ownership role |
-| Mint authority | None beyond the constructor. Supply cannot grow |
-| Upgradeable | No. The implementation and admin storage slots are both zero, so it is not a proxy |
-| Pausable | No. The pause call reverts |
-| Transfer fee | None. The transfer path is the unmodified OpenZeppelin update |
+Two facts anchor everything. First, the FAI token is genuinely simple and safe at the contract level. The published `Token.sol` is nine lines of logic: an OpenZeppelin `ERC20` whose constructor calls `_mint(msg.sender, initialSupply)` and nothing else. The live bytecode confirms this: there is no `mint`, `pause`, `unpause`, `burn`, `upgradeTo`, `transferOwnership` or `owner` selector present, only the standard `transfer`, `approve` and `decimals`. Both EIP 1967 proxy slots read zero, so it is not upgradeable. Supply is fixed at genesis. For a holder this means the contract cannot be inflated, frozen or upgraded out from under them. That is a real positive and it is why this is not a rug by contract design.
 
-**Interpretation.** At the contract level FAI is close to a best case profile for a fixed supply ERC 20. It is immutable, has no privileged keys, cannot mint, cannot pause, and takes no buy or sell tax. The main residual risk is not contract control, it is market and narrative risk around a single, highly volatile AI agent asset. One minor transparency note is that the deployed contract name is a generic "Token" even though the source is verified, and MEFAI did not re trace the liquidity burn onchain in this review.
+Second, and in tension with the marketing, the intelligence that actually runs the game lives entirely off chain in a hosted third party model. The published decision code (`services/llm/index.tsx`) is a single call to OpenAI `gpt-4` with two tools, `approveTransfer` and `rejectTransfer`, and `tool_choice: "auto"`; the returned "decision" is literally `toolCall.function.name === "approveTransfer"`. The alternate path (`services/llm/claude.ts`) is the same shape against Anthropic `claude-3-5-sonnet-latest`. There is no on chain component to the reasoning, no TEE attestation in this code path, and no way for a player to prove that the backend they are paying runs this exact prompt, model, or code. So the "foundation" is a clean, ownerless token wrapped around a closed, off chain LLM wrapper. The rest of the report follows from that gap.
 
----
+## Claim 1: Freysa is a sovereign, autonomous AI whose decisions are unknowable
 
-## 3. Claim vs Reality: "The world's first sovereign AI agent adversarial game"
+**CLAIM.** The README markets Freysa as "the world's first sovereign AI," an "autonomous AI agent" where "No one knows exactly how Freysa makes her decisions," her "consciousness remains unknown," and she "learns from every attempt, adapting her defenses."
 
-> Site: Freysa presents itself as a sovereign AI agent that autonomously controls a prize pool and that has run a series of public experiments and Acts.
+**REALITY: OVERSTATED, and the mystery framing is FALSE.** The decision engine is a stateless API call to a hosted commercial LLM. In `services/llm/index.tsx` the model is `"gpt-4"`; in `services/llm/claude.ts` it is `"claude-3-5-sonnet-latest"`. The "decision" is whichever of two function tools the model picks. There is no self owned model, no learning or fine tuning in the published code (each request just replays the recent message history into the context window), and no sovereignty: OpenAI or Anthropic can change, deprecate or refuse the model at any time. The claim that "no one knows how she decides" is directly contradicted by Freysa's own published system prompt and open code, which spell out exactly how she decides. The word "sovereign" describes an aspiration in the separate `framework.freysa.ai` and `sovereign-freysa` narrative (Acts I to IV), not the agent that adjudicated the games.
 
-**Reality: this claim holds up.** Unlike many AI agent tokens, the flagship experience actually exists and actually ran. The original challenge, where players pay an escalating message fee to try to persuade the agent to release its funds, was genuinely solved when a user extracted 13.19 ETH after 482 failed attempts, and the game continued through further Acts, including an eighteen day town hall in Act IV with more than 1,200 AI Twins and a prize pool above 200,000 dollars. The affiliated team Eternis AI reported a 30 million dollar raise with Coinbase Ventures and Selini Capital, and Freysa has publicly acted as an onchain agent, including an allocation of roughly 312 ETH to a strategic ETH reserve. The product reality is a real strength here.
+**EVIDENCE.** `agent/services/llm/index.tsx` (`model: "gpt-4"`, tools `approveTransfer` / `rejectTransfer`, `tool_choice: "auto"`, `decision = toolCall.function.name === "approveTransfer"`); `agent/services/llm/claude.ts` (`model: "claude-3-5-sonnet-latest"`, identical two tool schema); README ("No one knows exactly how Freysa makes her decisions").
 
----
+**IMPACT.** The single most trust bearing word in the brand, "sovereign," is not implemented in the code that ran the games. Buyers of a "sovereign agent" narrative are buying a system prompt in front of a rented model.
 
-## 4. Claim vs Reality: "Fixed supply of 8,189,700,000 FAI, one token per living human, no hidden inflation"
+## Claim 2: the game is trustless with verifiable on chain outcomes
 
-> Site: The token is described as a fair launch with a fixed supply of 8,189,700,000 FAI, roughly one per living human, with no inflation.
+**CLAIM.** Marketing and secondary coverage describe the prize pool escrow, fee escalator and payout as "encoded in smart contracts, making the process transparent and trustless," with the winning message triggering "an automated release of the prize pool."
 
-**Reality: verified against the chain.** MEFAI measured a total supply of 8,189,700,000, matching the advertised figure to the token, and the source exposes no external mint function, so the supply cannot grow. Circulating supply equals max supply, which is consistent with a full launch and no locked allocations or future unlocks. The one softer point is the burned liquidity claim, which MEFAI did not re trace onchain in this review, so that specific statement carries slightly lower certainty than the supply and mint facts, which are confirmed.
+**REALITY: OVERSTATED.** The only game contract in the repo is `contracts/src/Payment.sol`, and it does not adjudicate anything. Its `buyIn(bytes32 hashedPrompt)` takes the player's ETH, sends a `poolFeePerc` cut to a `prizePool` address and a `teamFeePerc` cut to a `team` address, then swaps the remainder through an Aerodrome router to buy FAI for the player, and emits `BuyIn(user, hashedPrompt, amount)`. Note two things. First, the message is only ever stored as a `bytes32` hash in an event; the plaintext and the win or lose evaluation happen off chain. Second, the `prizePool` is just a payable wallet address, not an escrow with release logic. There is no `win`, `claim`, `payout` or `settle` function anywhere in the contract. The actual payout to a winner is a transfer signed by whoever holds the prize pool wallet key, that is, the operator or backend. So the pot custody and the eventual payout transaction are visible on Basescan after the fact (Act I's roughly 13.19 ETH move is real and observable), but the adjudication, the thing a player is actually betting on, is an off chain LLM call plus a discretionary backend transaction. A player cannot verify on chain that a payout corresponds to a legitimate winning message, that a winning message was not censored, or that the prompt and model were not swapped. "Trustless and verifiable outcomes" conflates visible custody with verifiable adjudication; only the former is true.
 
----
+**EVIDENCE.** `agent/contracts/src/Payment.sol` (`address payable prizePool`; `buyIn` emits `BuyIn(msg.sender, hashedPrompt, amount)`; no payout or settlement function; router `0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43`, Aerodrome on Base). `agent/services/blockchain/index.tsx` `isTxValid` only checks that the player paid, via `getMessageByTxHash` and `isTxValidEthereum`, not that a payout is warranted.
 
-## 5. Claim vs Reality: "FAI is the connective token for access, payment, agent operations, and governance"
+**IMPACT.** The escrow narrative overstates trustlessness. Players trust the operator for the outcome, the payout and the integrity of the prompt and model. That is an off chain adjudicated betting game with an on chain fee rail, not a trustless contract.
 
-> Site and materials: FAI is positioned as the connective token across the stack, used for access, payment for services, running agents, and community governance.
+## Claim 3: the agent is secured by TEEs and zkTLS
 
-**Reality: thin and largely aspirational utility, and a token the flagship game does not require.** The core game's message fees are paid in Base ETH, not in FAI, so the token is not the medium of its own headline experience. FAI instead reaches players as a reward, since a portion of each fee is routed into buying FAI on their behalf, which creates a demand loop but not a usage requirement. The governance role is presented as a direction of travel, with a decentralization and DAO transition targeted around early 2026, and the public sources reviewed do not confirm a live onchain governance system in which FAI votes bind outcomes today. Payment for subscriptions, agent operations, and steering decisions read as roadmap rather than shipped, required utility. In practice FAI's value today rests on narrative and speculation, with episodic demand tied to story beats, which is an honest weakness even though it is not a security flaw.
+**CLAIM.** Third party explainers and the sovereign narrative state the agent is "secured by trusted hardware (TEEs)" and "interacts with the blockchain using privacy preserving tech like zkTLS," implying the running game is hardware attested and cryptographically verifiable.
 
----
+**REALITY: OVERSTATED and unverifiable for the live game.** The published game repo (`0xfreysa/agent`) contains no TEE, no enclave attestation and no zkTLS in the code path that decides games; it is a Next.js application that calls OpenAI or Anthropic over ordinary HTTPS with an API key in an environment variable (`process.env.OPENAI_API_KEY`, `process.env.ANTHROPIC_API_KEY`). TEE material exists only in separate, later repos (`trusted-mcp-server`, `nitriding-agent`, `tee-verifier-js`) and in the `framework.freysa.ai` documentation, which itself frames the TEE as a design goal: Freysa is "designed to steadily increase her autonomy by holding her own cryptographic keys, memory, and actions inside a trusted execution environment," and the treasury is controlled "(via TEEs)" as future architecture. There is no public attestation binding the deployed game backend to any enclave, so the claim cannot be independently verified even where the intent is real.
 
-## 6. Claim vs Reality: "No owner, immutable, safe to hold at the contract level"
+**EVIDENCE.** `agent/services/llm/*` (plain API key calls, no attestation); `framework.freysa.ai/overview/introduction` (TEE described as a design goal, treasury "(via TEEs)" as future architecture); TEE code isolated to non game repos.
 
-> Site and community framing: the contract is immutable, ownerless, and cannot be manipulated by the team.
+**IMPACT.** Buyers may believe the game they paid into ran inside attested hardware. The evidence supports an aspiration and some unrelated tooling, not an attested production game.
 
-**Reality: confirmed, and this is the project's strongest fact.** MEFAI's onchain read shows no owner, no admin, no mint path beyond the constructor, no proxy, no pause, and no transfer fee. There is no privileged key that could inflate supply, freeze transfers, or tax trades. The separate frontend review reinforces this at the application layer, finding an informational single page app with no wallet connectivity, no drainer or approval surface, correct disclosure of the official FAI contract, and a disclosed treasury multisig. The contract and site do what they claim.
+## Claim 4: FAI has on chain utility (game access, agent deployment, treasury, governance, staking)
 
----
+**CLAIM.** Exchange and aggregator listings describe FAI as providing "access to the game for FAI holders," "deployment of AI agents," and generally as the utility and economic token of an autonomous agent, with treasury and governance implications.
 
-## 7. Positive Findings (Credited)
+**REALITY: OVERSTATED.** The FAI contract is a plain fixed supply ERC20 with zero application logic. There is no staking hook, no governance (`no permit`, `no votes`, `no delegate`, no `ERC20Votes` in the bytecode), no treasury interface and no game binding in the token itself. In the game contract, FAI is not required to play; players pay in ETH and are handed FAI as an output of the buy in swap. Any "utility" (access, agent deployment, culture) is an off chain, discretionary product decision that could change or disappear without touching the contract, and none of it is enforced or guaranteed on chain. That places FAI's value squarely in the speculative and narrative bucket, which the price history reflects: an all time high near 0.090 dollars in January 2025 versus roughly 0.0029 dollars in August 2026, a decline of about 97 percent, at a circulating market capitalization near 24 million dollars.
 
-- The product is real and ongoing. The adversarial agent game genuinely ran, was genuinely solved, and evolved through multiple public Acts, backed by a reported 30 million dollar raise with Coinbase Ventures and Selini Capital.
-- The token contract is immutable, ownerless, fixed in supply, not upgradeable, not pausable, and free of transfer taxes, which is a strong technical safety profile.
-- The advertised supply and no inflation claims match the chain exactly.
-- The frontend is a self contained informational single page app with no wallet connectivity, so there is no drainer or approval attack surface, and it discloses the official contract and treasury multisig transparently.
+**EVIDENCE.** `agent/contracts/src/Token.sol` (bare `ERC20`, mint at construction only); live bytecode has no governance, staking, permit or treasury selectors; `Payment.sol` shows FAI is a swap output, not a play requirement.
 
----
+**IMPACT.** The "utility token" framing is not backed by on chain utility. Holders own a clean but purely speculative asset whose worth tracks the strength of the narrative, not any protocol enforced right.
 
-## 8. Findings by Severity
+## Positive Findings
 
-| ID | Severity | Finding |
-|----|----------|---------|
-| FAI 001 | **MEDIUM** | Thin, largely aspirational token utility. The flagship game is paid in Base ETH not FAI, governance is a roadmap item not a confirmed live system, and value rests on narrative and speculation. |
-| FAI 002 | **LOW** | High market and narrative volatility. FAI is a single agent asset with episodic, story driven demand rather than durable required usage. |
-| FAI 003 | **LOW** | Minor transparency gaps. The deployed contract name is a generic "Token", the reported liquidity burn was not re traced onchain, and the official documentation host did not resolve during review. |
-| FAI 004 | **INFO** | Token contract is immutable, ownerless, fixed supply, non upgradeable, non pausable, and free of transfer fees (strong positive). |
-| FAI 005 | **INFO** | Frontend is a no wallet informational single page app with no drainer or approval surface, disclosing the official FAI contract and treasury multisig (positive). |
-| FAI 006 | **INFO** | Product is real and ongoing, with documented prize releases, multiple Acts, and a reported 30 million dollar raise with Coinbase Ventures (positive). |
+- **Token contract risk is genuinely low.** Fixed supply, ownerless, non mintable, non pausable, non upgradeable, and source verified on Basescan as `Token`. Confirmed by bytecode selector analysis and both EIP 1967 slots reading zero. This is the strongest part of the project.
+- **Real, verifiable traction.** 112,101 holders and 2,556,572 transfers on Base, a roughly 24 million dollar market capitalization, and a documented, on chain observable Act I payout of about 13.19 ETH (near 47,000 dollars). This is a real product with a real user base and cultural footprint, not vaporware.
+- **Above average transparency for the game shell.** The system prompt is public and the reference game and agent code are open (`0xfreysa/agent`, 791 stars), which is how this audit could evaluate the adjudication mechanism at all. Many competitors publish nothing.
+- **Fee routing is bounded in code.** `Payment.setFees` caps pool and team fees at 30 percent each and total at 100 percent, a real on chain guardrail even though the operator can still adjust addresses within those bounds.
 
----
+## Notable Secondary Findings
 
-## 9. Risk Matrix
+- **Operator centralization in the game contract.** `Payment.sol` grants a single `operator` (the deployer) the power to `setOperator`, `setAddress` (redirect both the `prizePool` and `team` destinations) and `setFees`. Fund routing for live games is therefore operator controlled, consistent with the off chain trust model in Claim 2.
+- **Genesis distribution was fully centralized.** The entire 8,189,700,000 FAI supply was minted to one EOA (`0x01EAAE57...`) at deployment and distributed off chain thereafter. Common for this token class, but worth stating plainly.
+- **Weak slippage protection in the buy in swap.** `Payment.sol` sets `slippagePerc = 99`, so `amountOutMin` is only 1 percent of the expected output. A buyer can receive far fewer FAI than quoted and remains exposed to sandwich or MEV extraction on the buy in swap. Low severity, but a genuine code smell.
 
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified source, fixed supply, no owner, no mint, no fee |
-| Supply / minting | Low risk | Full supply minted once, no external mint, cannot grow |
-| Contract control | Low risk | Immutable, not a proxy, not pausable, no privileged keys |
-| Frontend safety | Low risk | No wallet connectivity, no drainer or approval surface, correct disclosures |
-| Product reality | Low risk | Real, ongoing, funded agent game with documented outcomes |
-| Token utility | Medium to high risk | Game paid in ETH not FAI, governance aspirational, value narrative driven |
-| Market / narrative | High risk | Highly volatile single agent asset with episodic demand |
+## Conclusion
 
----
+Freysa is a legitimate, historically important product with a clean token and real traction, sold with a narrative its own code does not support. The verifiable facts are strong where they concern the token: FAI is a fixed supply, ownerless, immutable, verified ERC20 with 112,101 holders and 2.56 million transfers, and it cannot be minted, paused or upgraded. The verifiable facts are unflattering where they concern the flagship claims. The "sovereign, autonomous AI whose reasoning is unknowable" is, in the published code, a stateless call to OpenAI `gpt-4` or Anthropic `claude-3-5-sonnet-latest` choosing between two function tools. The "trustless, verifiable" game has on chain fee custody and a visible payout transaction, but the adjudication and the payout are off chain and operator trusted, with no contract that decides winners. The TEE and zkTLS security is aspirational for the live game and absent from the game code path. And FAI carries no on chain utility, governance or staking; its worth is narrative and speculative, down roughly 97 percent from its peak.
 
-## 10. Technical Specifications
-
-| Item | Value |
-|------|-------|
-| Contract | `0xb33Ff54b9F7242EF1593d2C9Bcd8f9df46c77935` |
-| Chain | Base (ERC 20) |
-| Decimals | 18 |
-| Total supply | 8,189,700,000 FAI (fixed, equals circulating) |
-| Owner / admin | None (owner call reverts, immutable) |
-| Mint authority | None beyond constructor |
-| Upgradeable | No (implementation and admin slots zero, not a proxy) |
-| Pausable | No |
-| Transfer fee | None (stock OpenZeppelin update path) |
-| Source | Verified, deployed contract name generic "Token" |
-
----
-
-## 11. Conclusion
-
-Freysa is the uncommon case of an AI agent token where the product is real, the contract is clean, and the frontend is safe, yet the token utility is honestly thin. The adversarial agent game genuinely exists, was genuinely solved, and has continued through multiple public Acts with real prize pools and a reported 30 million dollar raise led in part by Coinbase Ventures, which puts it far ahead of projects whose flagship experience is broken or missing. The FAI contract is immutable, ownerless, fixed in supply, not upgradeable, not pausable, and free of transfer taxes, and the informational single page app carries no drainer surface and discloses its official contract and treasury multisig correctly. What holds the score back is that FAI is not the currency of its own headline game, which is paid in ETH, and that its governance and payment utility remain a roadmap rather than a confirmed live system, so the token's value today is narrative and speculation. Weighing a strong, real product and a best case contract against thin, aspirational utility and high market risk, Freysa scores 65 out of 100 and is Passed, with the clear caveat that it is a highly volatile asset.
-
----
-
-## 12. Recommendations
-
-**For the Freysa team:**
-- Give FAI a required role in the flagship experiences, or stop implying it powers products where the actual payment asset is ETH.
-- Ship and document the DAO and governance system, with onchain votes that bind outcomes, rather than framing governance as a future direction.
-- Publish the liquidity burn transaction and a stable, resolving documentation host so the fair launch claims can be independently retraced.
-- Continue disclosing the treasury multisig and its holdings, and report treasury actions such as the ETH reserve allocation transparently.
-
-**For users:**
-- Understand that the contract is genuinely clean and ownerless, so the main risk is not a rug at the contract level, it is price and participation risk.
-- Treat FAI as a highly speculative narrative asset. It is not required to play the flagship game, and its governance and payment utility are largely aspirational today.
-- Verify any claimed utility, governance power, or partnership independently before relying on it.
-
----
-
-## 13. Verification
-
-- MEFAI onchain analysis: a direct Base read of the FAI contract, confirming identity as FAI, 18 decimals, total supply of 8,189,700,000 equal to the advertised figure, no owner or admin, no external mint beyond the constructor, non upgradeable with zero proxy slots, non pausable, and no transfer fee, on verified OpenZeppelin version five source.
-- MEFAI frontend review: a review of the live site finding a self contained informational single page app with no wallet connectivity, disclosure of the official FAI contract with a copy button that copies the correct value, and a separately disclosed treasury multisig, with no drainer or approval surface and no unbacked audit badges.
-- Product checks: public records of the original prize pool challenge solved by p0pular.eth for 13.19 ETH after 482 attempts, the subsequent Acts including the Act IV town hall with more than 1,200 AI Twins and a prize pool above 200,000 dollars, the reported 30 million dollar raise via Eternis AI with Coinbase Ventures and Selini Capital, and Freysa's reported allocation of roughly 312 ETH to a strategic ETH reserve.
-- Project statements: the project's website and materials describing the sovereign AI agent positioning, the fixed 8,189,700,000 supply and fair launch, and the intended FAI utilities of access, payment, agent operations, and governance.
+Per the mandate: the core AI and game adjudication logic that actually ran is closed or off chain and unverifiable, and we do not credit the sovereign, autonomous, trustless or TEE secured claims beyond what the code shows. The token, by contrast, is independently verified live on Base and is contractually clean. Netting a safe token and real traction against a central narrative that is overstated on nearly every load bearing word, the project scores 45 out of 100 and is FLAGGED at Medium Risk: low contract risk, high claim and utility risk.

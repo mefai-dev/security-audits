@@ -1,194 +1,136 @@
-# Security Audit Report: NATIX Network (NATIX) on Solana
+# NATIX Network (NATIX): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 64/100, MEDIUM RISK (Passed)**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | NATIX Network |
-| **Token Symbol** | NATIX |
-| **Mint (Solana)** | `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX` |
-| **Chain** | Solana (classic SPL Token, not Token 2022) |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **70/100** |
-| **Overall Risk** | **LOW to MEDIUM** |
-| **Verdict** | **Passed** |
+Date: 2026-08-06
+Analyst: MEFAI Security, senior source code auditor (ICE/ION deep audit, read only, public sources)
+
+**Token (live, verified on Solana mainnet 2026-08-06):**
+Mint `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX`. Program owner `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA` (classic SPL Token, NOT Token-2022). Decimals 6. Mint authority `null` (revoked, supply is fixed). Freeze authority `null` (accounts cannot be frozen). Supply 99,292,928,176.772374 NATIX (about 99.29 billion, consistent with a 100 billion cap net of burns). isInitialized true.
+
+**Websites:** natix.network (main), natix.network/tokens, natix.network/blog
+
+**GitHub:** github.com/natixnetwork (5 public repos) and the legacy github.com/natix-io org (video and computer vision heritage, plus the active nxdl repo)
 
 ---
 
-## Disclaimer
+## Severity Summary
 
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
+| Area | Finding | Severity | Label |
+|------|---------|----------|-------|
+| SPL token authorities | Mint and freeze authority both revoked, fixed supply, classic SPL | Positive | CONFIRMED IN CODE (on chain) |
+| Drive to earn rewards | Earned as off chain in app points on a centralized leaderboard, converted later | High | FALSE (claim of on chain, verifiable rewards) |
+| On chain program scope | A real staking program exists (saphira) but is admin centralized and the live mainnet program is not source matched; no data marketplace program is public | Medium | OVERSTATED |
+| AI camera and map data (VX360) | Device and vision code are real, but the ingestion and processing pipeline is closed and not decentralized in a verifiable way | Medium | OVERSTATED |
+| Traction (drivers, km) | Partnerships are real and press confirmed; driver and kilometer counts are self reported and inconsistent across sources | Medium | OVERSTATED (numbers) / CONFIRMED (partners) |
+| Core code transparency | Drive& app, mapping backend, reward ledger and conversion service are closed source | Medium | Core code closed or unverifiable |
+| Staking reward math | On chain reward uses f64 floating point compounding in the public source | Low | Code quality note |
+| Deploy hygiene | Public deploy scripts target devnet and commit test keypairs | Low | Hygiene note |
 
----
-
-## Executive Summary
-
-NATIX Network markets itself as a decentralized physical infrastructure network for mapping and Physical AI, where drivers turn dashcam and phone camera footage into fresh map data and AI training data and are rewarded in the NATIX token. Unlike many projects that sell a DePIN story, NATIX largely delivers one. The audit finds a real product, a token that is genuinely used, and a clean, fully renounced contract. The standout caution is economic rather than technical.
-
-1. **The mapping DePIN is real and live.** The network collects footage through the Drive& smartphone app and the VX360 plug in device for Tesla vehicles, and it publishes an interactive coverage map at https://coverage.natix.network/ that renders live from a backend. The homepage network statistics, on the order of 2,890,321 registered drivers, 1,932,230 kilometers mapped, 323,321 map data detections and coverage across 33 countries, are pulled from the project's own live coverage API rather than being hardcoded numbers.
-2. **The token is actually used.** NATIX powers contributor rewards, and the project runs a real Deep Staking dApp that hardcodes the correct official mint and lets users stake to earn passive rewards. The team has also executed real onchain token burns, including a 110 million NATIX burn in April 2026 and a larger cumulative reduction, which is behavior consistent with a token that has live utility rather than a purely speculative ticker.
-3. **The contract is clean and fully renounced.** MEFAI's direct RPC read shows a classic SPL mint with six decimals, roughly 99.29 billion of a stated 100 billion cap minted, a null mint authority and a null freeze authority, no transfer fee and no transfer hooks. No wallet can create new supply and no wallet can freeze balances, so contract level risk is low.
-4. **The main caution is dilution, not the contract.** Independent trackers put circulating supply near 40 percent, which means close to 60 percent of the supply still unlocks on a vesting schedule that stretches into 2028. Team and advisors at 20 percent and early backers near 25 percent make up much of that overhang. There is also product transition risk, since the Drive& phone app is being sunset in favor of VX360, and liquidity lock and depth were not verified from chain in this read only review.
-
-NATIX is a genuine, working DePIN with a clean and fully renounced token and real utility. The dominant residual risk is the large unlock overhang to 2028. This lands NATIX at 70 out of 100, Passed.
+Label tally: CONFIRMED IN CODE 2, OVERSTATED 3, FALSE 1.
 
 ---
 
-## 1. Token Overview
+## Why This Report Exists
 
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | NATIX Network / NATIX |
-| **Mint (Solana)** | `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX` |
-| **Decimals** | 6 |
-| **Token program** | Classic SPL Token (not Token 2022), no extensions |
-| **Max supply** | 100,000,000,000 stated; roughly 99,292,928,176 minted, which is the practical hard cap because mint authority is null |
-| **Circulating** | Roughly 40.56 billion, about 40.6 percent per independent trackers |
-| **Contract controls** | Mint authority null (renounced), freeze authority null (renounced) |
+NATIX Network markets itself as a decentralized, drive to earn mapping DePIN on Solana: a network where drivers with a phone, a dashcam or the VX360 camera capture street imagery, contribute it to a decentralized map, and earn the NATIX token, with an AI camera product and partners such as Grab. The marketing repeatedly frames the reward and the network as on chain and decentralized. This report tests those claims against the ACTUAL public source code and the on chain state, and separates what is genuinely verifiable from what is a centralized product wrapped in decentralization language. No team analysis is included. Everything here is read only and drawn from public code, public pages and public Solana RPC.
 
-The published mint on the official site matches the address confirmed live against the Solana mainnet RPC. The token trades on centralized venues including Gate, KuCoin and MEXC and on Solana pools including Raydium and Orca.
+## Method
 
----
+1. Confirmed the token independently on Solana mainnet via public RPC getAccountInfo and getTokenSupply against mint `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX`: program owner, decimals, mint authority, freeze authority, supply.
+2. Enumerated the public GitHub orgs natixnetwork and natix-io, cloned the Solana staking repo (saphira) and read the Rust source line by line.
+3. Checked whether the staking program identifier in the repo deploy scripts exists on mainnet, and looked up the hardcoded owner authority on chain.
+4. Read the official token page, the token explainer blog and third party coverage to extract the reward mechanism, tokenomics, burns and traction claims.
+5. Labeled each flagship claim CONFIRMED IN CODE, OVERSTATED or FALSE with a file and line reference or an on chain fact.
 
-## 2. On chain Security Assessment (MEFAI analysis)
+Transparency limit: the Drive& mobile app, the mapping and data ingestion backend, the in app reward ledger and the in app to on chain conversion service are not published anywhere public. Per MEFAI policy, unseen claims about those components are not credited. In addition, a note on completeness: public Solana RPC endpoints rate limited or blocked getTokenLargestAccounts during this audit, so top holder concentration was not independently pulled. That single distribution metric is an explicit gap; every other on chain fact above was retrieved directly.
 
-MEFAI's direct read of the NATIX mint on Solana returned:
+## The Foundation: the token is real and clean
 
-| Check | Result |
-|-------|--------|
-| Token identity | NATIX, six decimals, verified against the official mint |
-| Token program | Classic SPL Token, no Token 2022 extensions |
-| Supply | Roughly 99.29 billion minted against a stated 100 billion cap |
-| Mint authority | Null (renounced), no new supply can ever be created |
-| Freeze authority | Null (renounced), no wallet balance can be frozen |
-| Transfer fee | None |
-| Transfer hooks | None |
+Verified on chain, the NATIX mint is a plain, well behaved classic SPL token, not Token-2022. Both dangerous authorities are gone:
 
-**Interpretation.** At the contract level NATIX is strong. It is a classic SPL mint with both authorities renounced, which removes the two most common Solana token risks, hidden minting and account freezing, at the same time. There is no transfer fee extension and no transfer hook, so transfers are ordinary and predictable. Supply is fixed on the published vesting schedule. The residual risks for this project are therefore economic rather than technical, chiefly the large scheduled unlocks and the liquidity depth and lock status that this read only review did not verify from chain.
+- Mint authority is `null`. No party can print new NATIX. Supply is fixed at the current 99,292,928,176.772374 units.
+- Freeze authority is `null`. No party can freeze or seize holder token accounts.
+- Decimals 6, initialized, owned by the standard SPL Token program `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA`.
 
-**Frontend safety.** MEFAI's frontend review found the public marketing site holds no token or wallet address and performs no wallet connection, loading only reputable third party scripts, while the token interaction lives on the separate staking app. That staking app hardcodes the correct official mint and connects wallets through standard Solana wallet adapter and WalletConnect libraries. It requests signatures and transactions, which is expected for staking, and shows none of the classic drainer traits, meaning no unlimited approvals, no transfer of all assets, no lookalike mint and no obfuscated or remotely injected code. The one caveat is that the shipped bundles were reviewed statically rather than by driving a live wallet transaction end to end.
+This is the strongest positive in the report. The classic rug vectors of a DePIN token, an open mint authority and an open freeze authority, are both closed. The token itself carries low direct risk. The concerns in this report are about how the NATIX network works, not about the token contract.
+
+Reported tokenomics (from natix.network and CoinCarp) allocate 37 percent to an Incentivization Pool released based on product usage, 24.9 percent to Early Backers, 20 percent to Team and Advisors, 8 percent to liquidity, 5.1 percent Reserve and 5 percent Public Sale, on a 100 billion cap. The ICO on CoinList reportedly raised about 5M USD. These allocations are disclosed, which is a positive, but the vesting and the pool releases are administered off chain.
 
 ---
 
-## 3. Claim vs Reality: "A live, community mapping DePIN"
+## Claim 1: Drivers earn NATIX on chain for mapping data, verifiably
 
-> Site: NATIX presents itself as a decentralized camera network where drivers map the world with dashcam and phone footage and the coverage grows in real time.
+**CLAIM (marketing):** the network is a decentralized mapping DePIN where contributors earn the NATIX token for the map data they provide. The framing throughout is on chain and decentralized.
 
-**Reality: the DePIN is genuinely live and used.** The network has two real data collection products, the Drive& smartphone app and the VX360 plug in device that taps a Tesla's external cameras and uploads footage over Wi Fi. The coverage map at https://coverage.natix.network/ is a working dynamic application that renders from a backend rather than a static graphic, and the project is listed on independent DePIN trackers such as DePINscan and DePIN Hub. This is a delivered product, not a rendering of intent, which is the single biggest differentiator from projects whose flagship experience is broken.
+**REALITY: FALSE as stated.** Mapping rewards are off chain application points computed by a centralized leaderboard, not on chain, and not verifiable on chain. Only an optional later withdrawal touches the blockchain.
 
----
+**EVIDENCE:**
+- The official token explainer states the earning path plainly: "The top 60% of the regional leaderboards earn in app NATIX every monthly cycle." Ranking and issuance happen in the closed Drive& backend.
+- The same page describes a two currency design: in app NATIX (points) versus on chain NATIX (the SPL token), and gates conversion: "in app NATIX to on chain $NATIX withdrawal has a 30-day cooldown period or a 30% fee in case of instant withdrawal." That is a centralized ledger paying out, not an on chain reward.
+- There is no public program, and no public repository, for the reward ledger, the leaderboard, the map data verification or the point issuance. The mapping backend is closed source.
 
-## 4. Claim vs Reality: "Live network statistics"
+**IMPACT:** the core drive to earn value loop is a centralized application that mints points and later disburses tokens at the operator's discretion. Contributors cannot independently verify on chain that mapping work produced the correct reward. This is the central overreach: the decentralization is at the token and staking layer, not at the earning layer.
 
-> Site: The homepage advertises large network metrics, on the order of 2,890,321 registered drivers, 1,932,230 kilometers mapped, 323,321 map data detections, 165,000 plus monthly multi camera footage hours and 33 countries of coverage.
+## Claim 2: An on chain program governs NATIX staking and rewards
 
-**Reality: the numbers come from a live API, not a hardcoded banner.** MEFAI's frontend review confirmed that the homepage headline statistics are pulled live from the project's own coverage API, and the coverage map renders the same underlying data. That does not independently prove every figure is audited, but sourcing the headline metrics from a live product API rather than a static number is a meaningful transparency positive, and it is consistent with a network that is actually operating.
+**CLAIM (marketing):** "The NATIX deep staking platform is live", tokens can be staked for rewards, and the token powers validator nodes and network governance.
 
----
+**REALITY: PARTIALLY CONFIRMED, but OVERSTATED.** A real Solana staking program is public and hardcodes the NATIX mint. However it is administered by a single owner key, its rewards come from a team funded pool rather than protocol revenue, the public deploy configuration targets devnet, and the actual mainnet staking program is not source matched from the repo. There is no public on chain data marketplace program.
 
-## 5. Claim vs Reality: "NATIX is used for rewards and staking"
+**EVIDENCE:**
+- The saphira repo contains a native Solana staking program that binds to the exact NATIX mint: `programs/stake_v2/src/get_natix_token_mint.rs:22` returns `Pubkey::try_from("FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX")`. This confirms the code is written for this token.
+- The reward rate is a centrally set knob, not a market outcome. `programs/stake_v2/src/change_interest_rate.rs:26` documents "Only owner of program account can call this", and enforces it via `control_owner`. The owner is a single hardcoded key: `programs/stake_v2/src/get_owner_id.rs:7` returns `Ewbt8FTk39iAXuymJNdfvL6wEfU91ochNSbAdc5KWHkc`. On mainnet that address is a plain system owned wallet holding about 0.101 SOL, a normal single signer keypair, not a multisig or a governance program.
+- The same owner controls pause, resume, set_config and max stakers (`pause.rs`, `resume.rs`, `set_config.rs`, `control_max_stakers.rs`), so staking can be halted or reconfigured unilaterally.
+- Reward computation is continuous compounding at the owner set rate: `programs/stake_v2/src/get_reward.rs:39` and `:48` apply `p.mul(E.powf(r.mul((clamped as f64).div(365.0))))`. This uses f64 floating point in on chain financial math, a determinism and precision concern.
+- The repo deploy scripts point at devnet, not mainnet: `programs/vote/constants.js:8` sets `connectionUrl = "https://api.devnet.solana.com"`, and the staking program id it references, `FqTzWJoJSAqG6fPwo4cucDtaK8MowBUH82TmxSXhLxbJ`, does not exist as an account on mainnet (getAccountInfo returns null). The live mainnet staking program therefore runs code that cannot be matched to this public source.
+- The same constants.js commits raw secret keys for the payer and authority keypairs. These are devnet test keys, so the direct risk is low, but it is poor hygiene.
+- No public program exists for a data marketplace, validator node rewards, or governance voting on chain. The vote tooling in saphira is a devnet program, not a live governance system.
 
-> Site: NATIX is described as the unit of account for the network, used to reward contributors and to stake for passive rewards and governance.
+**IMPACT:** staking is genuinely on chain and honestly bound to the right mint, which is better than pure marketing DePINs. But it is admin centralized (one key sets the yield and can pause), its rewards are subsidised from the Incentivization Pool rather than earned by the protocol, and the running mainnet program is not source verifiable. The broad claim that an on chain program governs the NATIX network is overstated.
 
-**Reality: the token utility is real, not decorative.** Contributors are paid in NATIX for shared footage, and the NATIX Deep Staking dApp is a real product that hardcodes the correct official mint and lets holders stake to earn tiered rewards. The team has also carried out real onchain burns, including a 110 million NATIX burn in April 2026 and a larger cumulative reduction over time, which is active token management tied to the product. Unlike many tokens whose own flagship product settles in a different asset, NATIX is the medium of its own reward and staking loop.
+## Claim 3: The VX360 AI camera and a decentralized, verifiable map dataset
 
----
+**CLAIM (marketing):** the VX360 device unlocks Tesla 360 cameras, and NATIX builds a decentralized network for real time, high resolution map data and physical AI.
 
-## 6. Claim vs Reality: "100 billion max supply and fixed supply"
+**REALITY: OVERSTATED.** A real device and real computer vision code exist, and the hardware is confirmed by independent press, but the end to end data pipeline is closed source and centralized, so the decentralized and verifiable framing is not demonstrable.
 
-> Site: NATIX advertises a 100 billion maximum supply with a fixed, capped token.
+**EVIDENCE:**
+- Real vision code is public. The streetvision-subnet repo (Python, MIT, over 1000 commits, active in 2026) is a Bittensor subnet that classifies road imagery, for example detecting construction sites. This is a genuine machine learning codebase. Note that it runs on Bittensor, not Solana, and it is not the NATIX reward mechanism.
+- The legacy natix-io org shows years of computer vision engineering (the vsdkx video SDK family, face detection, object detection), which supports the claim that NATIX has real vision capability heritage.
+- However, the VX360 firmware, the camera to network ingestion, the map building pipeline and the AI processing that turns imagery into map data are not published anywhere public. There is no way from code to verify that the dataset is decentralized, that contributions are attributed on chain, or that the pipeline is anything other than a conventional centralized data collection service that pays app points.
+- The device itself is corroborated by independent coverage (Invezz, AInvest, SolanaFloor) describing VX360 built on Grab hardware to capture Tesla 360 footage.
 
-**Reality: accurate on supply, understated on float.** The chain shows roughly 99.29 billion minted against the stated 100 billion cap, so the headline is accurate and slightly conservative rather than inflated, and because the mint authority is null no new tokens can ever be created. The area where a reader should look past the marketing is float. Independent trackers put circulating supply near 40 percent, which means close to 60 percent still unlocks on a vesting schedule reaching into 2028, with team and advisors at 20 percent and early backers near 25 percent forming much of the overhang. This is a genuine dilution consideration that the fixed supply framing does not surface on its own.
+**IMPACT:** the AI and camera story is plausible and partly backed by real, inspectable vision code, which is a positive. The decentralized and verifiable adjectives applied to the map dataset are not supported by any public code and should be treated as marketing.
 
----
+## Claim 4: Real traction, drivers and partners
 
-## 7. Claim vs Reality: "Partnerships and product roadmap"
+**CLAIM (marketing):** over 100,000 users and nearly 40 million kilometers mapped in the first year, later described as millions of registered drivers, plus partners including Grab.
 
-> Site: NATIX highlights a roster of well known names, including Google, NVIDIA, Amazon, Solana, Valeo, Grab and the Autoware Foundation, and presents Drive& and VX360 as its product line.
+**REALITY: partners CONFIRMED, traction numbers OVERSTATED (self reported and inconsistent).**
 
-**Reality: real relationships mixed with ecosystem branding, plus a live product pivot.** The Autoware Foundation membership and the Solana, Grab and Valeo associations are consistent with the project's mapping and autonomy focus, but marquee names such as Google, NVIDIA and Amazon read more as cloud and ecosystem relationships than as deep, shipped integrations, and a reader should verify the depth of any specific claim independently. Separately, the product line is in transition. The Drive& phone app is being sunset, with earnings disabled from May 1, 2026 and operations discontinued from July 1, 2026, while focus shifts to the VX360 Tesla device and a StreetVision subnet effort. The pivot is disclosed and forward looking rather than hidden, but the homepage still frames Drive& as a headline product, so the transition is worth flagging as execution risk.
+**EVIDENCE:**
+- The Grab partnership (May 2025) is confirmed by multiple independent outlets, not only by NATIX. This is real and material.
+- Driver and kilometer figures are self reported by NATIX and disagree across sources. NATIX marketing cites "over 100,000 users" and "nearly 40 million kilometers" in year one; a third party research writeup instead hedges to "millions of registered drivers, hundreds of thousands of mapped kilometers", which is internally inconsistent with the 40 million kilometer claim. None of these numbers are verifiable on chain or from any public dataset.
+- Burns are referenced (a claim of over 8 million NATIX burned, plus periodic burn reports). The on chain supply of about 99.29 billion sitting below the 100 billion cap is consistent with some burning having occurred, but the exact burn totals are self reported.
 
----
-
-## 8. Positive Findings (Credited)
-
-- The mapping DePIN is real and live, with two working data collection products (Drive& and VX360) and an interactive coverage map at https://coverage.natix.network/.
-- The token contract is a clean classic SPL mint with both mint and freeze authorities fully renounced, no transfer fee and no transfer hooks.
-- The token has genuine utility, powering contributor rewards and a real Deep Staking dApp, with real onchain burns as active supply management.
-- The homepage network statistics are sourced from a live coverage API rather than hardcoded, and the marketing site itself holds no wallet connection or address.
-- Listings across reputable CEX venues (Gate, KuCoin, MEXC) and Solana DEX pools (Raydium, Orca) corroborate real market presence.
-
----
-
-## 9. Findings by Severity
-
-| ID | Severity | Finding |
-|----|----------|---------|
-| NATIX 001 | **MEDIUM** | Large unlock overhang: only about 40 percent circulating, with close to 60 percent vesting into 2028 (team and advisors 20 percent, early backers near 25 percent). Economic dilution risk, not a contract flaw. |
-| NATIX 002 | **LOW** | Liquidity lock status and pool depth were not verified from chain in this read only review. |
-| NATIX 003 | **LOW** | Product transition and framing: the Drive& phone app is being sunset (earnings off May 1, discontinued July 1, 2026) while the homepage still frames it as a headline product, and several marquee partnerships read as ecosystem relationships rather than deep integrations. |
-| NATIX 004 | **INFO** | Contract is a clean classic SPL mint with mint and freeze authorities fully renounced, no fee and no hooks (positive). |
+**IMPACT:** the partnership substance is real and is the strongest external validation of the project. The usage metrics are marketing figures that an auditor cannot confirm, so they should not be relied upon as facts.
 
 ---
 
-## 10. Risk Matrix
+## Positive Findings
 
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified official mint, classic SPL, no fee, no hooks |
-| Supply / minting | Low risk | Mint authority renounced, supply fixed at the minted amount |
-| Product reality | Low risk | Live DePIN, working apps, live coverage map and API |
-| Token utility | Low risk | Real rewards and staking dApp, active onchain burns |
-| Tokenomics / float | Medium risk | Only about 40 percent circulating, near 60 percent unlock overhang to 2028 |
-| Liquidity | Medium risk | LP lock and depth not verified from chain |
-| Transparency | Low risk | Live stat sourcing and disclosed vesting, with minor partnership and pivot framing caveats |
+- The token contract is clean and safe: classic SPL, mint authority revoked, freeze authority revoked, fixed supply of about 99.29 billion. The primary rug vectors are closed.
+- A real Solana staking program is public (saphira) and correctly hardcodes the NATIX mint, which is more transparency than most DePIN tokens offer.
+- Genuine engineering heritage: an active, MIT licensed Bittensor vision subnet with real ML code, and years of prior computer vision repositories.
+- Real, press confirmed partnerships (Grab), which are hard to fabricate.
+- Disclosed tokenomics with explicit vesting schedules and an incentivization pool tied to product usage.
+- Deflationary burns are documented and are consistent with supply sitting below the stated cap.
 
----
+## Conclusion
 
-## 11. Technical Specifications
+NATIX Network is a legitimate project with a clean, fixed supply SPL token, real partnerships, real vision engineering and some genuinely public on chain code. It is not a scam. The problem is a consistent gap between the decentralized, on chain framing and the actual architecture. The flagship drive to earn reward is an off chain, centralized leaderboard that issues application points and later lets users convert them to tokens, gated by a cooldown and a 30 percent instant withdrawal fee; that specific claim of on chain, verifiable mapping rewards is FALSE. The on chain program story is real but narrow and admin centralized: a single owner key sets the staking yield and can pause the program, the yield is subsidised from a team pool rather than protocol revenue, and the live mainnet staking program cannot be matched to the public source, whose deploy scripts target devnet. The core value creating components, the Drive& app, the mapping backend, the reward ledger and the conversion service, are closed source and therefore unverifiable, so their claims are not credited.
 
-| Item | Value |
-|------|-------|
-| Mint | `FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX` |
-| Chain | Solana |
-| Token program | Classic SPL Token (no Token 2022 extensions) |
-| Decimals | 6 |
-| Supply minted | Roughly 99.29 billion of a 100 billion stated cap |
-| Circulating | Roughly 40.6 percent per independent trackers |
-| Mint authority | Null (renounced) |
-| Freeze authority | Null (renounced) |
-| Transfer fee | None |
-| Transfer hooks | None |
-| Venues | Gate, KuCoin, MEXC (CEX); Raydium, Orca (DEX) |
+Net: the investor facing token risk is low, but the decentralization claims that define the product are overstated, and the earning mechanism that the whole DePIN thesis rests on is a centralized app. Score 64 out of 100, MEDIUM risk, Passed, driven up by a clean token and real partnerships and held down by a false on chain reward claim, a centralized and unverified staking deployment, and closed core code.
 
----
-
-## 12. Conclusion
-
-NATIX Network is a real decentralized physical infrastructure network with a clean, fully renounced token, and it scores 70 out of 100, Passed. The mapping DePIN is genuinely live, with working data collection products, an interactive coverage map, and homepage statistics sourced from a live coverage API rather than a static banner. The token is actually used, powering contributor rewards and a real staking dApp, and supported by real onchain burns. At the contract level the risk is low, because both the mint and freeze authorities are renounced and there is no transfer fee or hook. The caution here is not a contract exploit or a broken product, it is economics: only about 40 percent of supply is circulating and close to 60 percent still unlocks into 2028, and liquidity lock and depth were not verified from chain. NATIX is a project whose product is largely delivered and whose main open risk sits in its unlock schedule.
-
----
-
-## 13. Recommendations
-
-**For the NATIX team:**
-- Surface the vesting and unlock schedule prominently alongside the fixed supply framing, so the near 60 percent overhang to 2028 is transparent to holders.
-- Publish verifiable liquidity lock details and pool depth so the market presence can be confirmed from chain.
-- Update the homepage product framing to reflect the Drive& sunset and the VX360 focus, and label big name relationships as ecosystem versus shipped integration.
-- Continue publishing onchain burn and reward data to keep the token utility loop verifiable.
-
-**For users:**
-- Treat the DePIN and token utility as real and delivered, which is a genuine positive relative to peers.
-- Size the dilution risk deliberately: only about 40 percent of supply circulates today and a large amount unlocks through 2028.
-- Understand that liquidity lock and depth were not verified from chain, and interact with staking only through the official staking app and the confirmed mint.
-
----
-
-## 14. Verification
-
-- MEFAI onchain analysis: a direct Solana RPC read of the NATIX mint (identity, classic SPL Token program, six decimals, roughly 99.29 billion minted, null mint authority, null freeze authority, no transfer fee, no transfer hooks), plus circulating supply and vesting dates from independent trackers.
-- Frontend review: static review of the marketing site (no wallet connection or address, reputable third party scripts, headline stats sourced from the live coverage API) and the staking app (correct hardcoded mint, standard Solana wallet adapter and WalletConnect, no drainer traits), reviewed statically rather than by driving a live wallet transaction.
-- Product checks: live fetch of the coverage map at https://coverage.natix.network/ (dynamic, backend rendered), confirmation of the Drive& and VX360 products, and the disclosed Drive& sunset and VX360 pivot.
-- Project statements: the project's website and blog (network statistics, staking and rewards, the 100 billion supply claim, token burns, and the partnership roster).
+Labels: CONFIRMED IN CODE 2, OVERSTATED 3, FALSE 1.

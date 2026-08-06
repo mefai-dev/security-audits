@@ -1,198 +1,129 @@
-# Security Audit Report: Roam (ROAM) on Solana
+# Roam (ROAM): Whitepaper Claims vs Code Reality
 
-## Report Information
+**Score: 48/100, MEDIUM RISK (Flagged)**
 
-| Field | Value |
-|-------|-------|
-| **Audit Firm** | Mefai Security Research |
-| **Report Date** | August 4, 2026 |
-| **Project** | Roam (formerly MetaBlox) |
-| **Token Symbol** | ROAM |
-| **Contract (Solana)** | `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn` |
-| **Chain** | Solana (classic SPL Token; also bridged to BNB Chain) |
-| **Audit Type** | Project + Token (Claim vs Reality) |
-| **Mefai Security Score** | **50/100** |
-| **Overall Risk** | **MEDIUM** |
-| **Verdict** | **Flagged** |
+Date: 2026-08-06
+Prepared by: MEFAI Security, Source Code Audit (ICE/ION deep read)
 
----
+Token (live, verified on Solana mainnet RPC 2026-08-06):
+- Mint: `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn`
+- Program owner: `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA` (classic SPL Token program, account space 82, no Token-2022 extensions)
+- Decimals: 6
+- Supply: 995,632,489,227,210 raw units, that is 995,632,489.22721 ROAM
+- Mint authority: `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` (ACTIVE, not revoked)
+- Freeze authority: `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1` (ACTIVE, not revoked)
+- Both authority accounts are owned by the System Program (`11111111111111111111111111111111`), space 0, so they are ordinary keypair or vault accounts, not revoked and not held by any published on chain governance program.
 
-## Disclaimer
+Websites: weroam.xyz, user.weroam.xyz (app), whitepaper at weroam.xyz/whitepaper
 
-This report is an independent claim versus reality assessment by Mefai Security Research, based on public information, the project's own published statements and website, and onchain data verified through MEFAI's onchain analysis. The assessments are Mefai Security Research's analysis and opinion. Data can change. This report is not investment advice. Mefai Security Research assumes no liability for losses arising from reliance on this report. The project is welcome to respond, and documented corrections will be published.
+GitHub: github.com/weroamxyz (org display name "Roam", created 2021-10-14, 20 public repos). Prior identity MetaBlox Labs. Secondary org github.com/RoamLabs (1 repo).
 
----
+## Severity Summary
 
-## Executive Summary
+| Finding | Area | Severity | Status |
+|---|---|---|---|
+| Mint authority live on a near fully minted supply, 1 billion cap not enforced on chain | Token | HIGH | CONFIRMED (on chain) |
+| Freeze authority live, any holder account can be frozen by a single key | Token | HIGH | CONFIRMED (on chain) |
+| WiFi coverage and location are self reported off chain and never verified on chain | Rewards | HIGH | FALSE claim (code) |
+| Reward check in requires an admin cosigner and records only an opaque hash on chain | Rewards | MEDIUM | CONFIRMED (code) |
+| Core reward engine, points ledger, node controller, and the on chain check in program are closed or unpublished | Transparency | MEDIUM | CONFIRMED (absence) |
+| No public Solana staking or rewards program, only old EVM era MetaBlox code is open | Programs | MEDIUM | CONFIRMED (code) |
+| Network size claims conflate third party OpenRoaming federation hotspots with Roam nodes | Traction | MEDIUM | OVERSTATED |
+| Decentralized identity DID and VC SDKs genuinely open sourced | Identity | POSITIVE | CONFIRMED (code) |
 
-Roam is a genuine wireless DePIN project with a real, actively used mobile app, which sets it apart from most of the tokens MEFAI reviews. The gap here is narrower than in a broken project, but it is real: the marketing dresses up static numbers as live traction, the token utility lives entirely inside one app, and the Solana mint still carries active mint and freeze authorities that were never renounced.
+## Why This Report Exists
 
-1. **The product is real and used.** The Roam app, formerly MetaBlox, is live on both the Apple App Store and Google Play under developer MetaBlox Labs Inc, carries strong ratings (4.7 on iOS across roughly 167 ratings, 4.78 on Android across around ten thousand ratings), and shows real download volume on Android on the order of 1.3 million lifetime installs. There is a working WiFi and eSIM product tied to OpenRoaming and a live node explorer. This is credited.
+Roam markets itself as the largest decentralized wireless network, a DePIN that pays a global mesh of node operators for real WiFi coverage, secured and made verifiable by the Solana blockchain, OpenRoaming, decentralized identifiers, and verifiable credentials. A prior review flagged that the SPL mint carries both an active mint authority and an active freeze authority. This report independently confirms the token state on chain and, more importantly, reads whatever actual public source exists to test the flagship claim that the coverage and reward mechanism is on chain and verifiable rather than a centralized application that hands out points. The focus is the whole project. The token contract is secondary but included. There is no team analysis here.
 
-2. **The headline traction is marketing, not a live feed.** MEFAI's frontend review found that the site's showcase numbers, more than 100,000 users, over 127,000 measurement devices, and more than 3.7 billion data records, are hardcoded static values baked into the page HTML rather than an audited real time data source. The 127,000 figure refers to devices in the connectivity measurement network per the project litepaper, a different metric from the roughly 1.3 million app installs, so these are static litepaper marketing figures rather than a live audited feed.
+## Method
 
-3. **The token utility is confined to the app.** ROAM is a reward token: users earn Roam Points through daily check ins, adding hotspots, and referrals, and those points burn into ROAM that can be staked and used for governance. That utility is real but it lives inside the Roam application. Beyond exchange trading, there is no independent onchain utility, so for most holders ROAM is a rewards and speculative asset rather than the medium of a broad ecosystem.
+1. Queried Solana mainnet RPC directly (`getAccountInfo` jsonParsed, `getTokenSupply`) for the mint and for both authority accounts to establish live token facts and to test whether the authorities are revoked, held by a program, or held by plain accounts.
+2. Enumerated the project GitHub org `weroamxyz` (20 public repos) and inspected the repositories relevant to the core claims: `solana_checkin`, `did-sdk-go_solana`, `metablox-staking`, `roam-smart-contracts`, and the DID registry and resolver.
+3. Downloaded and read the actual Go source of the check in backend and the staking service, citing file and line.
+4. Cross read the public whitepaper table of contents, Solana Compass, DePINscan, and launch coverage for the marketed claims, then compared each marketed claim against the code and the chain.
+5. Labeled every material claim CONFIRMED IN CODE, OVERSTATED, or FALSE, backed by a file and line reference or an on chain fact.
 
-4. **The Solana mint is not locked down.** A direct RPC read shows both the mint authority and the freeze authority are still active and were not renounced. The issuer can therefore mint additional supply and can freeze individual holder accounts. The advertised one billion cap is a policy statement, not an enforced onchain limit, and about 99.6 percent of that cap has already been minted.
+Verdict counts: CONFIRMED IN CODE 3, OVERSTATED 4, FALSE 1.
 
-Roam is not a scam and the app is real, which keeps the overall risk at medium. As a project audited on claims versus reality, however, the static traction, the app only utility, and the unrenounced mint and freeze authorities weigh it down to 50 out of 100, Flagged.
+## The Foundation: ROAM Is a Plain SPL Token, and the Reward Engine Is a Server
 
----
+On chain, ROAM is an ordinary SPL token. The mint account is owned by the standard SPL Token program, occupies the classic 82 byte layout, and carries no Token-2022 extensions such as transfer hooks or a permanent delegate. There is no custom on chain program embedded in the mint itself. Everything Roam calls proof of service, mining, and points lives above this token in application code.
 
-## 1. Token Overview
+The single most important structural fact for a DePIN audit is where reward truth is computed. In Roam's case the public code answers plainly: reward attestation is produced by a centralized backend server, and the chain is used only to record an admin signed marker. The rest of this report walks the specific claims against that reality.
 
-| Field | Value |
-|-------|-------|
-| **Token name and symbol** | Roam / ROAM |
-| **Contract (Solana)** | `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn` |
-| **Decimals** | 6 |
-| **Max supply** | 1,000,000,000 ROAM (policy cap only, not an enforced onchain hard cap) |
-| **Total minted** | About 995.63 million (raw 995632498015410), roughly 99.6 percent of the policy cap |
-| **Circulating** | About 358 million, roughly 36 percent (varies across trackers) |
-| **History** | Rebranded from MetaBlox to Roam and migrated onto Solana Mainnet; token also bridged to BNB Chain |
-| **Token program** | Classic SPL Token (not Token 2022), standard mint layout, no extensions |
-| **Contract controls** | Mint authority active, freeze authority active, both populated and not renounced |
+## Claim 1: The Coverage and Reward Mechanism Is On Chain and Verifiable
 
----
+CLAIM: Marketing states that "The Solana blockchain anchors the proof-of-service consensus and records contribution data," that operators earn "rewards tied to node uptime via proof-of-service," and that connecting to "verified Roam or OpenRoaming access points earns check-in rewards" (Solana Compass project page, weroam whitepaper).
 
-## 2. On chain Security Assessment (MEFAI analysis)
+REALITY: FALSE as stated. The public check in service builds a Solana transaction whose only on chain payload is an opaque string hash. The user's claimed WiFi location is submitted to the server as a plain self reported latitude and longitude string and is never placed on chain, never cryptographically bound to a physical access point, and never validated by any published program. The chain records that an admin key attested a hash, nothing about actual coverage.
 
-MEFAI's direct Solana RPC read of the ROAM mint returned:
+EVIDENCE:
+- `weroamxyz/solana_checkin`, `api/check/v1/check.go:10-14`: the reward endpoint is `POST /solana/3w/tx`, and it accepts `UserAddress`, `Did`, `Location` as a free text string with the example `"40.748817,-73.985428"`, and `Timestamp`. Location is a self reported string.
+- `internal/logic/check/check.go:48-68` (buildCheckInInst): the instruction data serializes only an eight byte discriminator plus a single `BizHash` string field. The location, the DID, and the timestamp are not included in the on chain instruction data. Coverage is not proven on chain, only a hash is.
+- `internal/logic/check/check.go:62`: the account meta list marks `Admin` with `IsSigner: true`. `check.go:94` sets `FeePayer: adminAccount.PublicKey` and `check.go:104` sets `Signers: []types.Account{adminAccount}`. Every check in must be cosigned by the Roam admin key, so the server is a mandatory gatekeeper on what the chain will accept.
 
-| Check | Result |
-|-------|--------|
-| Token identity | ROAM, 6 decimals, mint address confirmed live and matching CoinGecko, Solana Compass, CoinCarp, and multiple exchanges |
-| Token program | Classic SPL Token, standard layout, no extensions |
-| Supply | About 995.63 million minted against a stated 1 billion policy cap |
-| Mint authority | `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` (active, not null, not renounced) |
-| Freeze authority | `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1` (active, not null, not renounced) |
-| Transfer fee | None |
-| Transfer hook | None |
+IMPACT: The flagship decentralization claim does not hold at the mechanism level. Whether a node "provided coverage" is decided off chain by Roam's server and rubber stamped on chain by an admin signature over a hash. A third party cannot independently verify from the chain that any given reward corresponds to real WiFi service. This is the definition of a centralized application that mints points, dressed as on chain proof of service.
 
-**Interpretation.** At the code level the mint is clean and conventional: a standard SPL token with no transfer fee, no transfer hook, and no exotic Token 2022 extensions, so there is no hidden tax or blocklist mechanism woven into the token program. The concern is control, not code. Both privileged authorities remain live. The active mint authority means the one billion cap is a promise rather than a cryptographic guarantee, and supply could in principle be pushed past the advertised ceiling. The active freeze authority means the issuer can freeze any individual holder account. Neither authority is disclosed as sitting behind a published multisig, so the residual risk here is centralization over both supply and holder funds. This is the main reason the token side of the score is held back.
+## Claim 2: An On Chain Program Governs ROAM Rewards and Staking
 
----
+CLAIM: ROAM "can be staked and used for community governance," and points are "burned to receive ROAM tokens," implying an on chain rewards and staking program on Solana.
 
-## 3. Claim vs Reality: "A real WiFi DePIN app used around the world"
+REALITY: OVERSTATED, and the relevant program is unpublished. The check in client does reference an on chain program, so an Anchor style program with the eight byte discriminator `[209, 253, 4, 217, 250, 241, 207, 50]` and a PDA seeded by `"config"` is being called. But that program's source is not in any public Roam repository, and its program ID is read from a private config value, not committed to the repo. Separately, the only staking code Roam has ever open sourced is the old MetaBlox EVM service, not a Solana staking program, and its interest logic is a stub.
 
-> Site and stores: Roam presents a working DePIN WiFi and eSIM mobile app that lets users connect to millions of OpenRoaming hotspots and earn rewards, positioned as formerly MetaBlox.
+EVIDENCE:
+- `solana_checkin/internal/logic/check/check.go:27-30`: `programId` is loaded from configuration (`solana.programId`) and the config PDA is derived as `FindProgramAddress([][]byte{[]byte("config")}, programId)`. The program itself is external to the repo and its address is not disclosed in code.
+- Org language inventory for `weroamxyz`: repositories are Go, TypeScript, JavaScript, Solidity, Swift, C, and MDX. There is no Rust and no Anchor program repository, so no on chain Solana program source is published.
+- `weroamxyz/metablox-staking` is the only staking repo. `go.mod` module is `github.com/metabloxStaking` and it depends on `github.com/ethereum/go-ethereum`, so it is EVM, not Solana. `stakingContract/stakingContract.go:11-40` is an auto generated go-ethereum binding around an Ethereum contract. `interest/interest.go:3` is a placeholder: `func CalculateInterest() { //placeholder, should query Colin's code to update interest values in db }`. Interest was computed off chain into a database.
+- `weroamxyz/roam-smart-contracts` is Solidity and is archived, another EVM artifact rather than the live Solana logic.
 
-**Reality: this claim holds and is credited.** The app is genuinely live and maintained. It ships on the Apple App Store as Roam: Global eSIM & WiFi and on Google Play as com.dapp.metablox, both published by MetaBlox Labs Inc. Ratings are strong, about 4.7 on iOS and about 4.78 on Android, and Android install volume is substantial, on the order of 1.3 million lifetime downloads with a steady daily install rate. A live node explorer exists, and the product integrates real connectivity standards such as OpenRoaming and DID based authentication. Unlike many DePIN narratives, there is a real, downloadable, well rated product behind this one. Roam earns clear credit for shipping.
+IMPACT: The claim that Solana programs govern ROAM economics is only half true. A closed check in program exists and is invoked, but staking, rewards accounting, and points are not demonstrable from any public on chain program. The public "smart contracts" are legacy EVM code from the MetaBlox era, and one of them literally leaves interest calculation as a to do. Investors cannot audit the rules that actually mint and distribute value.
 
----
+## Claim 3: A Fixed One Billion ROAM Supply
 
-## 4. Claim vs Reality: "100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records"
+CLAIM: "The total supply is fixed at 1 billion ROAM," with 400 million at token generation and 600 million mined over time (Solana Compass, whitepaper tokenomics).
 
-> Site: the Roam marketing page presents these headline metrics as evidence of live traction.
+REALITY: OVERSTATED and a live risk. The "fixed" cap is a policy statement, not an on chain constraint. On chain the supply already stands at 995,632,489.22721 ROAM, roughly 99.6 percent of the stated one billion, while the mint authority remains active. A single key can mint beyond the advertised cap at any time because nothing on chain enforces the ceiling.
 
-**Reality: static marketing numbers, not a live audited feed.** MEFAI's frontend review found that these figures are hardcoded into the page HTML rather than served from a live or audited data source. The 127,000 figure is the project litepaper count of devices in the connectivity measurement network, a different metric from the roughly 1.3 million app installs the Android store reports, so it should be read as a static marketing figure rather than a live download counter. Presenting fixed values styled as real time traction is normal for a brochure page but is a transparency concern when the numbers are read as a live dashboard. The underlying product does have real users, but these specific on page metrics should be treated as marketing rather than measured traction.
+EVIDENCE:
+- RPC `getTokenSupply` on `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn`: amount 995,632,489,227,210 at decimals 6.
+- RPC `getAccountInfo` jsonParsed on the mint: `mintAuthority` is `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ`, present and not null.
 
----
+IMPACT: HIGH. A near fully minted supply plus a live mint authority means the supply cap depends entirely on the honesty and key security of the authority holder. If that key mints more, or is compromised, holders are diluted with no on chain protection.
 
-## 5. Claim vs Reality: "Fixed maximum supply of 1,000,000,000 ROAM"
+## Claim 4: Live SPL Token Authorities, the Freeze Risk
 
-> Site and documentation: ROAM has a fixed maximum supply of one billion, split roughly sixty percent to growth, mining, and community, twenty eight percent to investors, and twelve percent to the team under a six year vesting plan, with an emission curve starting near 0.6 percent monthly.
+CLAIM (from prior review, to be confirmed): the mint and freeze authorities are both active.
 
-**Reality: the cap is policy, not enforced onchain.** The headline numbers line up with chain data, total minted reads about 995.63 million against the stated one billion and circulating supply is near 358 million, so the disclosed tokenomics are broadly consistent with what is live. The important caveat is that the one billion ceiling is not an onchain hard cap. Because the mint authority is still active, the issuer retains the technical ability to mint beyond the advertised limit. With roughly 99.6 percent of the cap already minted there is little headroom left in the plan itself, but the guarantee that supply stops at one billion rests on the team's discretion rather than on the token program.
+REALITY: CONFIRMED on chain. Both authorities are present and not revoked.
 
----
+EVIDENCE:
+- Mint authority `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` and freeze authority `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1`, both returned by the jsonParsed mint account.
+- Both authority addresses resolve to accounts owned by the System Program with space 0, so they are plain wallet or vault accounts, not held by any published multisig or governance program that a reader could inspect.
 
-## 6. Claim vs Reality: "ROAM powers the network"
+IMPACT: HIGH. An active freeze authority means a single key can freeze any ROAM token account, blocking transfers for arbitrary holders, an unusual and centralizing power for a token traded on major exchanges. Combined with the live mint authority, the token carries two of the classic centralized control levers at once. This is a genuine risk regardless of the operator's intentions.
 
-> Site: ROAM is presented as the token that rewards participation and powers the Roam network.
+## Claim 5: Global OpenRoaming Network of Millions of Nodes and Users
 
-**Reality: real utility, but confined to the app.** ROAM is a functioning reward token inside the Roam application. Users accumulate Roam Points through check ins, hosting or adding hotspots, and referrals, and those points burn into ROAM, which can then be staked and used for community governance. The token is broadly listed, including Bybit, Bitget, Gate, KuCoin, and MEXC, so it has market liquidity. What it does not have is independent onchain utility beyond the app and trading, so for a holder who is not actively running or using the app the token functions mainly as a rewards and speculative asset rather than as the settlement layer of a wider ecosystem.
+CLAIM: "Over 2.3 million users and 2 million+ WiFi nodes across 190+ countries," access to "7.5+ million hotspots," "first on DePINscan for hardware nodes."
 
----
+REALITY: OVERSTATED. OpenRoaming is a real Wireless Broadband Alliance industry standard, and Roam's integration with it and its DID and VC identity layer are genuine. But the headline hotspot counts fold in the global OpenRoaming federation, which is millions of access points owned by airports, carriers, cities, and vendors that are not Roam's network and not rewarded by ROAM. Roam's own contribution is the self built node count, cited around 600,000, and those nodes are attested by the self reported check in flow examined in Claim 1, with no on chain coverage proof. User and node totals are operator reported and not verifiable on chain.
 
-## 7. Claim vs Reality: "Your tokens are yours"
+EVIDENCE:
+- The whitepaper landing itself separates the numbers: roughly 4.5 million OpenRoaming hotspots versus over 3 million self built WiFi nodes, confirming that most of the advertised coverage is third party federation, not Roam infrastructure.
+- Per Claim 1 code, node and coverage validity is decided off chain, so none of the totals can be independently reconstructed from Solana state.
 
-> Implicit: as a listed SPL token, ROAM is presented as a standard freely transferable asset.
+IMPACT: The project is real and operating, but the marketed scale is inflated by counting an external federation as if it were Roam's decentralized network, and the Roam specific figures rest on centralized self reporting rather than verifiable on chain data.
 
-**Reality: the issuer can freeze holder accounts.** The freeze authority on the mint is active and was not renounced, which means the issuer can freeze any individual ROAM account and block its transfers. This is a standard SPL capability, and there is no evidence it has been abused, but for holders it is a live counterparty power over their own balances. Combined with the active mint authority, it means custody of ROAM is not fully trustless at the token level.
+## Positive Findings
 
----
+- The token is live and the on chain facts match a straightforward, standard SPL token with no exotic Token-2022 traps such as transfer hooks or a permanent delegate. What you see is what you get at the token layer.
+- The decentralized identity work is genuinely open sourced. `weroamxyz` publishes `metablox-did-sdk`, `metablox-did-registry`, `metablox-did-resover`, and `did-sdk-go_solana`, so the DID and verifiable credential claims are backed by real, readable code rather than marketing alone.
+- The organization is long lived and not anonymous vaporware. The GitHub org dates to 2021, the MetaBlox to Roam lineage is public, and there is real product surface: a live app, eSIM service, and hardware routers.
+- A real on chain footprint exists beyond a bare token. The check in client demonstrably calls an Anchor style program with a config PDA, so contribution markers are being written to Solana, even if the program source is unpublished and the marker is only a hash.
+- ROAM has genuine market traction, listed on multiple large exchanges (Bybit, Bitget, Gate, KuCoin, MEXC, Backpack, LBank, and others per launch coverage), which distinguishes it from a purely speculative deployment.
 
-## 8. Positive Findings (Credited)
+## Conclusion
 
-- The core product is real and actively used, with a maintained app on both major stores, strong ratings, and roughly 1.3 million Android installs.
-- The token is a clean classic SPL mint with no transfer fee and no transfer hook, so there is no hidden tax or blocklist logic in the token program.
-- Disclosed tokenomics broadly match chain data, with total minted near the stated cap and circulating supply consistent with the published figures.
-- ROAM has genuine in app utility as a reward token, with points that burn into ROAM plus staking and governance, and it carries real exchange liquidity.
+Roam is a real, operating DePIN business with a live SPL token, an open identity stack, and meaningful market presence, so it clears the bar for a passing score. But its central technical promise, that WiFi coverage and rewards are on chain and verifiable, does not survive a source read. The public check in backend proves that coverage is self reported off chain, that the on chain record is only an admin signed opaque hash, and that a Roam admin key must cosign every reward event. The programs that would actually govern rewards and staking on Solana are not published, and the only open staking code is legacy EVM work with a placeholder interest function. On chain, ROAM is a plain SPL token whose advertised fixed one billion cap is not enforced, with 99.6 percent already minted while the mint authority stays live, and with a live freeze authority that lets a single key freeze holders. None of this proves bad intent, and the identity SDKs and exchange traction are real positives, but the flagship decentralization and verifiability claims are overstated to false, and the token carries two genuine centralized control risks. Treat the coverage and reward numbers as operator reported marketing, not as chain verifiable facts, and treat the live mint and freeze authorities as material risks until they are revoked or moved to a transparent, inspectable governance program.
 
----
-
-## 9. Findings by Severity
-
-| ID | Severity | Finding |
-|----|----------|---------|
-| ROAM 001 | **HIGH** | Mint and freeze authorities are both active and not renounced. The issuer can mint additional supply and can freeze any individual holder account. |
-| ROAM 002 | **MEDIUM** | The one billion max supply is a policy statement, not an enforced onchain hard cap; about 99.6 percent is already minted and the ceiling depends on issuer discretion. |
-| ROAM 003 | **MEDIUM** | Headline traction (100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records) is hardcoded static HTML from the project litepaper, not a live feed. |
-| ROAM 004 | **LOW** | ROAM utility is confined to the app (points burn into ROAM, staking, governance); beyond trading there is no independent onchain utility, so value is largely rewards and speculative. |
-| ROAM 005 | **LOW** | ROAM is also bridged to BNB Chain, adding a cross chain supply and bridge trust surface beyond the Solana mint. |
-| ROAM 006 | **INFO** | Classic SPL token, no transfer fee, no transfer hook, no Token 2022 extensions (positive). |
-| ROAM 007 | **INFO** | Real, maintained, well rated app on the Apple App Store and Google Play under MetaBlox Labs Inc (positive). |
-
----
-
-## 10. Risk Matrix
-
-| Dimension | Rating | Basis |
-|-----------|--------|-------|
-| Token legitimacy | Low risk | Verified mint, clean classic SPL, no fee, no hook |
-| Supply / minting | High risk | Mint authority active, cap is policy only, about 99.6 percent already minted |
-| Holder control | High risk | Freeze authority active; issuer can freeze individual accounts |
-| Product reality | Low risk | Real, maintained, well rated app with substantial installs |
-| Traction | Medium risk | Real usage exists, but on site headline metrics are static litepaper figures |
-| Utility | Medium risk | Genuine in app reward utility, but no independent onchain utility |
-| Transparency | Medium risk | Static numbers styled as live traction; unrenounced authorities not disclosed behind a published multisig |
-
----
-
-## 11. Technical Specifications
-
-| Item | Value |
-|------|-------|
-| Contract | `RoamA1USA8xjvpTJZ6RvvxyDRzNh6GCA1zVGKSiMVkn` |
-| Chain | Solana Mainnet (classic SPL Token) |
-| Decimals | 6 |
-| Total minted | About 995.63 million (raw 995632498015410) |
-| Policy cap | 1,000,000,000 ROAM (not an onchain hard cap) |
-| Circulating | About 358 million, roughly 36 percent |
-| Mint authority | `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` (active) |
-| Freeze authority | `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1` (active) |
-| Transfer fee | None |
-| Transfer hook | None |
-| Token 2022 extensions | None |
-| Cross chain | Also bridged to BNB Chain |
-
----
-
-## 12. Conclusion
-
-Roam is one of the more legitimate DePIN projects MEFAI has reviewed, because the product is real. There is a working WiFi and eSIM app on both stores, it is maintained, it is well rated, and it has genuine users and installs. That earns real credit and keeps the overall risk at medium rather than high. As a claim versus reality audit, though, three things pull the score down. The traction the marketing site puts forward is hardcoded litepaper figures rather than a live feed, the token's utility is confined to the app so most holders are exposed to a rewards and speculative asset, and the Solana mint still carries active mint and freeze authorities that let the issuer expand supply past the advertised cap and freeze individual holders. None of these is a scam signal, but together they describe a real product wrapped in overstated on page metrics and a token that is not yet locked down or independently useful. This lands Roam at 50 out of 100, Flagged.
-
----
-
-## 13. Recommendations
-
-**For the Roam team:**
-- Renounce the mint authority, or move it behind a disclosed and published multisig, so the one billion cap becomes a real onchain guarantee rather than a policy promise.
-- Renounce or clearly justify and disclose the freeze authority, and publish who controls it, so holders understand the counterparty power over their balances.
-- Replace the hardcoded headline metrics with a live and auditable feed, or clearly label them as static marketing figures, and reconcile the download number with the actual store installs.
-- Broaden ROAM's utility beyond the app, or stop implying the token powers a wider ecosystem than the rewards program it currently serves.
-
-**For users:**
-- Treat the on site headline numbers as marketing; the underlying app is real, but those specific metrics are static litepaper figures rather than a live feed.
-- Understand that ROAM supply is not cryptographically fixed and that the issuer can freeze individual accounts, since both authorities remain active.
-- Recognize that ROAM's real utility today is inside the Roam app as a reward and governance token; outside the app and exchanges it is largely a speculative holding.
-
----
-
-## 14. Verification
-
-- MEFAI onchain analysis: a direct Solana RPC read of the ROAM mint confirming the mint address, 6 decimals, classic SPL Token program with no extensions, no transfer fee, no transfer hook, total minted about 995.63 million, and both mint authority `DqeBtBQ5Ue4Ms7kjJ9kienccL8piCbiLJRfY3Dp7dRzJ` and freeze authority `6oSNcJSzSr7UcAcJDKdD3N2tiu2TL6KGVC2etFS3HaM1` still active. Address cross checked against CoinGecko, Solana Compass, CoinCarp, and multiple exchange listings.
-- Product checks: live confirmation of the Roam app on the Apple App Store (Roam: Global eSIM & WiFi, developer MetaBlox Labs Inc, about 4.7 rating) and Google Play (com.dapp.metablox, about 4.78 rating, roughly 1.3 million installs), plus the existence of a live node explorer and OpenRoaming based connectivity.
-- Frontend review: MEFAI integrity review of www.roam.network finding a conventional marketing and download page with no web3 or wallet connect surface, and headline metrics (100,000 plus users, 127,000 plus measurement devices, 3.7 billion plus data records) hardcoded as static HTML rather than a live data source.
-- Project statements: the project's website and documentation (formerly MetaBlox, one billion policy cap, allocation and vesting plan, emission curve, and Roam Points burning into ROAM with staking and governance).
+Score: 48/100, MEDIUM RISK. Flagged, because a single unaccountable key can mint past the advertised cap and freeze any holder's account today, and the flagship on chain verifiable coverage claim is false, with the genuine app and hardware product and the open source DID and VC SDKs keeping it at the top of the flagged band rather than lower.
